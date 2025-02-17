@@ -1,6 +1,6 @@
 from django.db import models
 
-from constant import LENGTH_DISCRIPTION
+from foodgram_backend.constant import LENGTH_DISCRIPTION
 
 
 class NameModel(models.Model):

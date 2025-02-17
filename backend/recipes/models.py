@@ -1,13 +1,16 @@
 from django.db import models
 from django.utils import timezone
+
+from foodgram_backend.constant import LENGTH_DISCRIPTION, LENGTH_VALUE
 from django.contrib.auth import get_user_model
 
-from constant import LENGTH_DISCRIPTION, LENGTH_VALUE
+User = get_user_model()
+
+
 
 #from backend.recipes.core import NameModel
 
 
-User = get_user_model()
 
 
 class NameModel(models.Model):

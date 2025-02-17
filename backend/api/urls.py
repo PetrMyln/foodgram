@@ -11,5 +11,5 @@ v1_patterns = [
 
 
 urlpatterns = [
-    path('v1/', include(v1_patterns)),
+    path('', include(v1_patterns)),
 ]
