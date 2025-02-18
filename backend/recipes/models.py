@@ -12,7 +12,6 @@ User = get_user_model()
 
 
 
-
 class NameModel(models.Model):
     name = models.CharField(
         max_length=LENGTH_DISCRIPTION,
