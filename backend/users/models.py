@@ -2,8 +2,15 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
-from foodgram_backend.constant import (LENGTH_ROLE, LENGTH_SHOW_NAME, LENGTH_TEXT,
-                                       LENGTH_USERNAME)
+from foodgram_backend.constant import (
+    LENGTH_ROLE,
+    LENGTH_SHOW_NAME,
+    LENGTH_TEXT,
+    LENGTH_USERNAME,
+    PATH_TO_AVATAR,
+)
+
+#from backend.foodgram_backend.constant import PATH_TO_AVATAR
 
 
 class User(AbstractUser):
@@ -31,7 +38,7 @@ class User(AbstractUser):
         help_text='Выберите роль пользователя'
     )
     avatar = models.ImageField(
-        upload_to='avatar/images/',
+        upload_to=PATH_TO_AVATAR,
         verbose_name='Аватар',
         null=True,
         blank=True,

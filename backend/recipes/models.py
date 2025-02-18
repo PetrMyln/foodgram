@@ -1,15 +1,16 @@
 from django.db import models
 from django.utils import timezone
-
-from foodgram_backend.constant import LENGTH_DISCRIPTION, LENGTH_VALUE
 from django.contrib.auth import get_user_model
 
+
+from foodgram_backend.constant import (
+    LENGTH_DISCRIPTION,
+    LENGTH_VALUE,
+    PATH_TO_IMAGES,
+)
+
+
 User = get_user_model()
-
-
-
-#from backend.recipes.core import NameModel
-
 
 
 class NameModel(models.Model):
@@ -64,7 +65,7 @@ class Recipes(NameModel):
         verbose_name='Время приготовления в минутах',
     )
     image = models.ImageField(
-        upload_to='recipes/images/',
+        upload_to=PATH_TO_IMAGES,
         verbose_name='Фото',
     )
     ingredients = models.ManyToManyField(
