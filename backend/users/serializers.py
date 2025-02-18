@@ -26,7 +26,7 @@ class AuthSerializer(serializers.Serializer):
     )
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
-    password = serializers.CharField(read_only=True)
+    password = serializers.CharField(required=True)
 
     class Meta:
         model = User
@@ -36,8 +36,8 @@ class AuthSerializer(serializers.Serializer):
             'email',
             'first_name',
             'last_name',
-            'password',
         )
+
 
 
     def validate(self, data):
@@ -53,7 +53,7 @@ class AuthSerializer(serializers.Serializer):
             f'Проверьте {ans_error} уже используется!')
 
     def create(self, validated_data):
-        print(validated_data)
+
         user, _ = User.objects.get_or_create(
             username=validated_data.get('username'),
             email=validated_data.get('email'),
@@ -61,6 +61,7 @@ class AuthSerializer(serializers.Serializer):
             last_name=validated_data.get('last_name'),
             password=validated_data.get('password'),
         )
+        print(2)
         return user
 
 
@@ -73,8 +74,11 @@ class TokenSerializer(serializers.Serializer):
 
     def validate(self, data):
         #print(data.get('password'))
+
         user = get_object_or_404(
-            User, email=data.get('email'))
+            User, email=data.get('email'),
+            password=data.get('password'),
+        )
         print(user.password)
         return user
 
@@ -96,4 +100,3 @@ class UserSerializer(serializers.ModelSerializer):
             #'avatar',
         )
         extra_kwargs = {'password': {'write_only': True}}
-

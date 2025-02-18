@@ -22,12 +22,10 @@ from users.models import User
 from users.serializers import UserSerializer, AuthSerializer, TokenSerializer
 
 
-
-
 class UserViewSet(ModelViewSet):
     queryset = User.objects.order_by('username')
     serializer_class = UserSerializer
-    #permission_classes = (UserPermission,)
+    # permission_classes = (UserPermission,)
 
     lookup_field = 'username'
     filter_backends = (filters.SearchFilter,)
@@ -56,13 +54,12 @@ class UserViewSet(ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
-
-
-
 class SignUpView(generics.ListCreateAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserSerializer
     queryset = User.objects.all()
+
+    # def get_queryset(self):
 
     def post(self, request):
         serializer = AuthSerializer(data=request.data)
@@ -75,10 +72,8 @@ class SignUpView(generics.ListCreateAPIView):
             settings.SENDER_EMAIL,
             [request.data.get('email')]
         )
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
+        new_data = {k:v for k,v in serializer.data.items() if k !='password'}
+        return Response(new_data, status=status.HTTP_200_OK)
 
 
 class TokenView(APIView):
@@ -96,5 +91,3 @@ class TokenView(APIView):
             serializer.validated_data))}
         print(4)
         return Response(token, status=status.HTTP_200_OK)
-
-
