@@ -62,18 +62,19 @@ class AuthSerializer(serializers.Serializer):
 
 
 class TokenSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    confirmation_code = serializers.CharField()
+    password = serializers.CharField()
+    email = serializers.EmailField()
+
 
     def validate(self, data):
+        #print(data.get('password'))
         user = get_object_or_404(
-            User, username=data.get('username'))
-        if not default_token_generator.check_token(
-                user,
-                data.get('confirmation_code')):
-            raise serializers.ValidationError(
-                'Неверный confirmation_code')
+            User, email=data.get('email'))
+        print(user.password)
         return user
+
+
+
 
 
 class UserSerializer(serializers.ModelSerializer):
