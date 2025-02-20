@@ -41,7 +41,7 @@ class User(AbstractUser):
         upload_to=PATH_TO_AVATAR,
         verbose_name='Аватар',
         null=True,
-        blank=True,
+        default=None
     )
 
     class Meta:
@@ -55,3 +55,5 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         return self.is_superuser or self.role == self.Role.ADMIN.value
+
+

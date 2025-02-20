@@ -1,13 +1,28 @@
+import base64
+
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
+from django.core.files.base import ContentFile
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
+from rest_framework.response import Response
+from rest_framework import filters, permissions, status, viewsets
 
 from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
 from foodgram_backend.validators import validate_username
 from users.models import User
+
+
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            format, imgstr = data.split(';base64,')
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name='image.' + ext)
+        return super().to_internal_value(data)
+
 
 
 class AuthSerializer(serializers.Serializer):
@@ -45,12 +60,17 @@ class AuthSerializer(serializers.Serializer):
         email = data.get('email')
         rule_username = User.objects.filter(username=username).exists()
         rule_email = User.objects.filter(email=email).exists()
-        if (rule_email and rule_username) or (not rule_email
-                                              and not rule_username):
-            return data
-        ans_error = (email, username)[rule_username]
-        raise serializers.ValidationError(
-            f'Проверьте {ans_error} уже используется!')
+
+        if rule_email is True and rule_username is True:
+            raise serializers.ValidationError(
+                {'Ошибка':f'Проверьте {email} и {username} уже используются!'})
+        if rule_email:
+            raise serializers.ValidationError(
+                {'Ошибка':f'Проверьте {email} уже используется!'})
+        if  rule_username:
+            raise serializers.ValidationError(
+                {f'Ошибка':f'Проверьте {username} уже используется!'})
+        return data
 
     def create(self, validated_data):
 
@@ -59,7 +79,7 @@ class AuthSerializer(serializers.Serializer):
             email=validated_data.get('email'),
             first_name=validated_data.get('first_name'),
             last_name=validated_data.get('last_name'),
-            password=validated_data.get('password'),
+            password=make_password(validated_data.get('password')),
         )
         print(2)
         return user
@@ -73,30 +93,33 @@ class TokenSerializer(serializers.Serializer):
 
 
     def validate(self, data):
-        #print(data.get('password'))
-
         user = get_object_or_404(
             User, email=data.get('email'),
-            password=data.get('password'),
         )
-        print(user.password)
-        return user
-
+        rule_password_user = check_password(data.get('password'),user.password )
+        if rule_password_user:
+            return user
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
 
 
 
 class UserSerializer(serializers.ModelSerializer):
+    avatar = Base64ImageField(required=False, allow_null=True)
+
     class Meta:
         model = User
         fields = (
             'username',
             'id',
             'email',
-            'role',
+            #'role',
             'first_name',
             'last_name',
             #'password',
-            #'avatar',
+            'avatar',
+
         )
         extra_kwargs = {'password': {'write_only': True}}
+
+

@@ -30,7 +30,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+
     'django_filters',
+    'djoser',
     'recipes',
     'users',
     'api',
@@ -113,7 +115,11 @@ PASSWORD_HASHERS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGES = [
+    ('ru', 'Russian'),
+    ('en', 'English'),
+]
+LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'UTC'
 

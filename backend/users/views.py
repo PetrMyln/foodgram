@@ -12,13 +12,16 @@ from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
                                    ListModelMixin)
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.generics import RetrieveUpdateAPIView, UpdateAPIView
 
 from users.models import User
+from users.permissions import UserPermission
 from users.serializers import UserSerializer, AuthSerializer, TokenSerializer
 
 
@@ -81,13 +84,66 @@ class TokenView(APIView):
     serializer_class = TokenSerializer
 
     def post(self, request):
-        print(1)
         serializer = TokenSerializer(data=request.data)
-        print(request.data)
-
         serializer.is_valid(raise_exception=True)
-        print(3)
         token = {'auth_token': str(AccessToken.for_user(
             serializer.validated_data))}
-        print(4)
         return Response(token, status=status.HTTP_200_OK)
+
+
+class ProfileView(viewsets.ModelViewSet):
+    permission_classes = (permissions.AllowAny,)
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+
+
+
+class MyView(APIView):
+    def get(self, request):
+        user = request.user
+        if user.is_authenticated:
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+
+class MyAvatarView(generics.UpdateAPIView):
+    permission_classes = [UserPermission]
+    serializer_class = UserSerializer
+
+    def put(self, request, *args, **kwargs):
+        if not request.data:
+            raise ValidationError(
+                {f'avatar':["Обязательное поле."] })
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({'avatar': serializer.data['avatar']})
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.avatar = None
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+        except ValidationError as exc:
+            exc.detail.update({
+                'Erore': 'Пожалуйста, загрузите корректный файл изображения.'
+            })
+            raise exc
+        return Response(status=status.HTTP_200_OK)
+
+
+    def get_object(self):
+        return User.objects.get(pk=self.request.user.pk)
+
+
+    def perform_update(self, serializer):
+        serializer.save()
