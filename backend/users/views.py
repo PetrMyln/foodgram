@@ -1,68 +1,41 @@
-import generics
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.db.models import Avg
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.mixins import (CreateModelMixin, DestroyModelMixin,
-                                   ListModelMixin)
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.generics import RetrieveUpdateAPIView, UpdateAPIView
+from django.contrib.auth import update_session_auth_hash
 
 from users.models import User
 from users.permissions import UserPermission
-from users.serializers import UserSerializer, AuthSerializer, TokenSerializer
+from users.serializers import (
+    UserSerializer,
+    AuthSerializer,
+    TokenSerializer,
+    SetPasswordSerializer,
+)
 
 
-class UserViewSet(ModelViewSet):
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.order_by('username')
     serializer_class = UserSerializer
-    # permission_classes = (UserPermission,)
-
-    lookup_field = 'username'
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('=username',)
+    #lookup_field = 'username'
+    #filter_backends = (filters.SearchFilter,)
+    #search_fields = ('=username',)
     pagination_class = PageNumberPagination
 
-    @action(
-        methods=['GET', 'PATCH'], detail=False, url_path='me',
-        permission_classes=(permissions.IsAuthenticated,)
-    )
-    def get_update_me(self, request):
-        serializer = self.get_serializer(
-            request.user,
-            data=request.data,
-            partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        if self.request.method == 'PATCH':
-            serializer.validated_data.pop('role', None)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def update(self, request, *args, **kwargs):
-        if request.method == 'PUT':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().update(request, *args, **kwargs)
 
 
 class SignUpView(generics.ListCreateAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserSerializer
     queryset = User.objects.all()
-
-    # def get_queryset(self):
 
     def post(self, request):
         serializer = AuthSerializer(data=request.data)
@@ -75,7 +48,7 @@ class SignUpView(generics.ListCreateAPIView):
             settings.SENDER_EMAIL,
             [request.data.get('email')]
         )
-        new_data = {k:v for k,v in serializer.data.items() if k !='password'}
+        new_data = {k: v for k, v in serializer.data.items() if k != 'password'}
         return Response(new_data, status=status.HTTP_200_OK)
 
 
@@ -91,13 +64,11 @@ class TokenView(APIView):
         return Response(token, status=status.HTTP_200_OK)
 
 
-class ProfileView(viewsets.ModelViewSet):
+class ProfileView(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.AllowAny,)
     queryset = User.objects.all()
     serializer_class = UserSerializer
-
-
-
+    lookup_field = 'id'
 
 
 class MyView(APIView):
@@ -109,9 +80,6 @@ class MyView(APIView):
         return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
-
-
-
 class MyAvatarView(generics.UpdateAPIView):
     permission_classes = [UserPermission]
     serializer_class = UserSerializer
@@ -119,7 +87,7 @@ class MyAvatarView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         if not request.data:
             raise ValidationError(
-                {f'avatar':["Обязательное поле."] })
+                {f'avatar': ["Обязательное поле."]})
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -140,10 +108,25 @@ class MyAvatarView(generics.UpdateAPIView):
             raise exc
         return Response(status=status.HTTP_200_OK)
 
-
     def get_object(self):
         return User.objects.get(pk=self.request.user.pk)
 
-
     def perform_update(self, serializer):
         serializer.save()
+
+
+class SetPassword(APIView):
+
+    def post(self, request):
+        serializer = SetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            if user.check_password(serializer.data.get('current_password')):
+                user.set_password(serializer.data.get('new_password'))
+                user.save()
+                update_session_auth_hash(request, user)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {'Ошибка': 'Неверный пароль'},
+                status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
