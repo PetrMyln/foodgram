@@ -10,14 +10,18 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth import update_session_auth_hash
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import SearchFilter
 
-from users.models import User
+from users.models import User, Follow
 from users.permissions import UserPermission
 from users.serializers import (
     UserSerializer,
     AuthSerializer,
     TokenSerializer,
     SetPasswordSerializer,
+    #SubscriptionSerializer,
+    FollowSerializer,
 )
 
 
@@ -81,7 +85,7 @@ class MyView(APIView):
 
 
 class MyAvatarView(generics.UpdateAPIView):
-    permission_classes = [UserPermission]
+    #permission_classes = [UserPermission]
     serializer_class = UserSerializer
 
     def put(self, request, *args, **kwargs):
@@ -106,7 +110,7 @@ class MyAvatarView(generics.UpdateAPIView):
                 'Erore': 'Пожалуйста, загрузите корректный файл изображения.'
             })
             raise exc
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_object(self):
         return User.objects.get(pk=self.request.user.pk)
@@ -115,7 +119,7 @@ class MyAvatarView(generics.UpdateAPIView):
         serializer.save()
 
 
-class SetPassword(APIView):
+class SetPasswordView(APIView):
 
     def post(self, request):
         serializer = SetPasswordSerializer(data=request.data)
@@ -130,3 +134,46 @@ class SetPassword(APIView):
                 {'Ошибка': 'Неверный пароль'},
                 status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class fSubscriptionListView(generics.ListAPIView):
+    serializer_class = FollowSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        #return Follow.objects.select_related('follower').filter(id=3)
+        return Follow.objects.filter(follower=self.request.user)
+
+class SubscriptionListView(generics.ListAPIView):
+    queryset = User.objects.prefetch_related('following')
+    serializer_class = UserSerializer
+    #lookup_field = 'username'
+    #filter_backends = (filters.SearchFilter,)
+    #search_fields = ('=username',)
+    pagination_class = PageNumberPagination
+
+
+
+
+
+class SubscribeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, id):
+        rule_user = User.objects.filter(id=id).exists()
+        if not rule_user:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        subscriber = request.user
+        user = User.objects.get(id=id)
+        if user == subscriber:
+            return Response(
+                {'detail': 'You cannot subscribe to yourself.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        _, created = Follow.objects.get_or_create(follower=subscriber, user=user)
+        if created:
+            users1= User.objects.get(username=subscriber)
+            serializer = UserSerializer(users1)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({'detail': 'You are already subscribed to this user.'}, status=status.HTTP_400_BAD_REQUEST)

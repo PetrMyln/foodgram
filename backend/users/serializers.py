@@ -9,8 +9,8 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
-from foodgram_backend.validators import validate_username
-from users.models import User
+from foodgram_backend.validators import validate_username, ValidationError
+from users.models import User, Follow
 
 
 class Base64ImageField(serializers.ImageField):
@@ -118,3 +118,16 @@ class SetPasswordSerializer(serializers.ModelSerializer):
             'new_password',
             'current_password',
         )
+
+class FollowSerializer(serializers.ModelSerializer):
+    username = serializers.StringRelatedField(
+        read_only=True,
+        source='user')
+    follower = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Follow
+        fields = ('username', 'follower', 'created_at')
+
+
+

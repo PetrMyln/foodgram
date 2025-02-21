@@ -7,7 +7,7 @@ from users.views import (
     ProfileView,
     MyView,
     MyAvatarView,
-    SetPassword,
+    SetPasswordView,
 )
 
 v1_router = routers.DefaultRouter()
@@ -26,7 +26,7 @@ auth_patterns = [
 users_patterns = [
     path('me/avatar/', MyAvatarView.as_view(), name='avatar-detail'),
     path('me/', MyView.as_view(), name='profile-detail'),
-    path('set_password/', SetPassword.as_view(), name='signup'),
+    path('set_password/', SetPasswordView.as_view(), name='signup'),
     path('', SignUpView.as_view(), name='signup'),
     #path('users/(?P<id>\d+)', ProfileView.as_view(), name='profile'),
     #path('', include(v1_router.urls)),

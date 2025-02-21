@@ -7,12 +7,12 @@ from users.views import (
     ProfileView,
     MyView,
     MyAvatarView,
-    SetPassword,
+    SetPasswordView, SubscriptionListView, SubscribeView,
+
+    # SubscribeView,
 )
 
-#v1_router = routers.DefaultRouter()
 
-#v1_router.register('', ProfileView, basename='profile')
 
 auth_patterns = [
     path('token/login/', TokenView.as_view(), name='login'),
@@ -22,9 +22,18 @@ auth_patterns = [
 
 users_patterns = [
     path('me/avatar/', MyAvatarView.as_view(), name='avatar-detail'),
-    path('me/', MyView.as_view(), name='profile-detail'),
-    path('set_password/', SetPassword.as_view(), name='signup'),
+    path('me/', MyView.as_view(), name='list'),
+   path(
+        'subscriptions/',
+         SubscriptionListView.as_view(),
+         name='subscriptions'
+    ),
+    path('set_password/', SetPasswordView.as_view(), name='signup'),
     path('', SignUpView.as_view(), name='signup'),
+
+    path(
+        '<int:id>/subscribe/',
+        SubscribeView.as_view(), name='subscribe'),
     path('<int:id>/', ProfileView.as_view(({'get': 'retrieve'})), name='profile'),
 ]
 
