@@ -38,6 +38,7 @@ class Teg(NameModel):
 
 
 class Ingredient(NameModel):
+
     value = models.CharField(
         verbose_name='Еденица измерения',
         max_length= LENGTH_VALUE,

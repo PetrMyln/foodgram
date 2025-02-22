@@ -26,14 +26,6 @@ from users.serializers import (
 )
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.order_by('username')
-    serializer_class = UserSerializer
-    #lookup_field = 'username'
-    #filter_backends = (filters.SearchFilter,)
-    #search_fields = ('=username',)
-    pagination_class = PageNumberPagination
-
 
 
 

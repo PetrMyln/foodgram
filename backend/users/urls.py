@@ -12,8 +12,6 @@ from users.views import (
     # SubscribeView,
 )
 
-
-
 auth_patterns = [
     path('token/login/', TokenView.as_view(), name='login'),
     path('', include('djoser.urls.authtoken')),
@@ -23,10 +21,10 @@ auth_patterns = [
 users_patterns = [
     path('me/avatar/', MyAvatarView.as_view(), name='avatar-detail'),
     path('me/', MyView.as_view(), name='list'),
-   path(
+    path(
         'subscriptions/',
-         SubscriptionListView.as_view(),
-         name='subscriptions'
+        SubscriptionListView.as_view(),
+        name='subscriptions'
     ),
     path('set_password/', SetPasswordView.as_view(), name='signup'),
     path('', SignUpView.as_view(), name='signup'),

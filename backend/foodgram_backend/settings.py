@@ -30,7 +30,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-
     'django_filters',
     'djoser',
     'recipes',
@@ -119,12 +118,11 @@ LANGUAGES = [
     ('ru', 'Russian'),
     ('en', 'English'),
 ]
-LANGUAGE_CODE = 'ru'
+LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
-
+TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
-
+USE_L10N = True
 USE_TZ = True
 
 
