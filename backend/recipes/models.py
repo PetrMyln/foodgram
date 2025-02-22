@@ -29,12 +29,13 @@ class NameModel(models.Model):
 
 
 
-class Teg(NameModel):
+class Tag(NameModel):
     slug = models.SlugField(unique=True)
 
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+        ordering = ['-id']
 
 
 class Ingredient(NameModel):
@@ -53,23 +54,54 @@ class Recipes(NameModel):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Автор публикации',
+        verbose_name='Автор',
     )
     text = models.TextField(verbose_name='Текст')
-    pub_date = models.DateTimeField(
-        verbose_name='Дата и время публикации',
-        null=True,
-        default=timezone.now,
+
+    tags = models.ManyToManyField(
+        Tag,
+        verbose_name='Тег / Теги',
+        through='RecipeTag',
+        related_name='recipes',
     )
-    teg = models.ManyToManyField(Teg, verbose_name='Тег / Теги')
-    time_to_prepare = models.SmallIntegerField(
-        verbose_name='Время приготовления в минутах',
-    )
+
     image = models.ImageField(
         upload_to=PATH_TO_IMAGES,
         verbose_name='Фото',
+
     )
     ingredients = models.ManyToManyField(
         Ingredient,
         verbose_name ='Ингредиент / Ингредиенты',
+        through='RecipesIngredient',
     )
+    cooking_time=models.SmallIntegerField(
+        verbose_name ='Время приготовления',
+    )
+
+
+class RecipesIngredient(models.Model):
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        related_name='recipe_ingredient'
+    )
+    recipe = models.ForeignKey(
+        Recipes,
+        on_delete=models.CASCADE,
+        related_name='recipe_ingredients'
+    )
+    amount = models.PositiveIntegerField(verbose_name='Количество')
+
+    def __str__(self):
+        return f'{self.ingredient.name} {self.amount}'
+
+class RecipeTag(models.Model):
+    recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE,related_name='tag_recipes')
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('recipe', 'tag')
+
+    def __str__(self):
+        return f"{self.recipe.name} - {self.tag.name}"
