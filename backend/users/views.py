@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework import generics
@@ -137,23 +138,12 @@ class SetPasswordView(APIView):
 
 
 
-class fSubscriptionListView(generics.ListAPIView):
-    serializer_class = FollowSerializer
+class SubscriptionListView(generics.ListAPIView):
+    serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        #return Follow.objects.select_related('follower').filter(id=3)
-        return Follow.objects.filter(follower=self.request.user)
-
-class SubscriptionListView(generics.ListAPIView):
-    queryset = User.objects.prefetch_related('following')
-    serializer_class = UserSerializer
-    #lookup_field = 'username'
-    #filter_backends = (filters.SearchFilter,)
-    #search_fields = ('=username',)
-    pagination_class = PageNumberPagination
-
-
+        return User.objects.filter(following__follower_id=self.request.user.pk)
 
 
 
@@ -161,19 +151,21 @@ class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, id):
-        rule_user = User.objects.filter(id=id).exists()
-        if not rule_user:
-            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        user =get_object_or_404(User,id=id)
         subscriber = request.user
-        user = User.objects.get(id=id)
         if user == subscriber:
             return Response(
-                {'detail': 'You cannot subscribe to yourself.'},
+                {'Ошибка': 'Подписываться на самого себя запрещено.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         _, created = Follow.objects.get_or_create(follower=subscriber, user=user)
         if created:
-            users1= User.objects.get(username=subscriber)
-            serializer = UserSerializer(users1)
+            serializer = UserSerializer(User.objects.get(username=user))
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({'detail': 'You are already subscribed to this user.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {'Ошибка': 'Выуже подписанны на этого пользователя.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    def delete (self, request, id):
+        get_object_or_404(Follow,user_id=id).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
