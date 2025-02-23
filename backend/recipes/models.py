@@ -84,14 +84,14 @@ class RecipesIngredient(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='recipe_ingredient'
+        #related_name='recipe_ingredient'
     )
     recipe = models.ForeignKey(
         Recipes,
         on_delete=models.CASCADE,
         related_name='recipe_ingredients'
     )
-    amount = models.PositiveIntegerField(verbose_name='Количество')
+    amount = models.IntegerField(verbose_name='Количество')
 
     def __str__(self):
         return f'{self.ingredient.name} {self.amount}'
