@@ -10,7 +10,7 @@ from foodgram_backend.constant import (
     PATH_TO_AVATAR,
 )
 
-#from backend.foodgram_backend.constant import PATH_TO_AVATAR
+
 
 
 class User(AbstractUser):

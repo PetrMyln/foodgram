@@ -87,7 +87,8 @@ class RecipesIngredient(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='recipe_ingredient'
+        related_name='recipe_ingredient',
+        null=True
     )
     recipe = models.ForeignKey(
         Recipes,
@@ -108,3 +109,7 @@ class RecipeTag(models.Model):
 
     def __str__(self):
         return f"{self.recipe.name} - {self.tag.name}"
+
+
+class ShoppingCart(models.Model):
+    pass

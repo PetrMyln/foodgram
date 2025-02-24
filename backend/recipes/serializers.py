@@ -19,6 +19,7 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = '__all__'
 
+
 class RecipeTagSerializer(serializers.ModelSerializer):
     tag = TagSerializer()
 
@@ -28,26 +29,21 @@ class RecipeTagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    #name = serializers.CharField(required=False)
-    #amount = serializers.IntegerField(read_only=True)
+    # name = serializers.CharField(required=False)
+    # amount = serializers.IntegerField(read_only=True)
     class Meta:
         model = Ingredient
         fields = '__all__'
 
 
-
-
-
 class RecipeIngredientSerializer(serializers.Serializer):
-    #id = IngredientSerializer()
+    # id = IngredientSerializer()
     id = serializers.IntegerField()
-    #id = serializers.PrimaryKeyRelatedField(
+    # id = serializers.PrimaryKeyRelatedField(
     #    many=True,
-  #      queryset=RecipesIngredient.objects.all()
- #   )
+    #      queryset=RecipesIngredient.objects.all()
+    #   )
     amount = serializers.IntegerField()
-
-
 
     class Meta:
         model = RecipesIngredient
@@ -63,14 +59,10 @@ class RecipeIngredientSerializer(serializers.Serializer):
         return representation
 
 
-
-
-
-
 class RecipesSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=False, allow_null=True)
     author = UserSerializer(default=serializers.CurrentUserDefault())
-    #author =serializers.HiddenField(default=serializers.CurrentUserDefault())
+    # author =serializers.HiddenField(default=serializers.CurrentUserDefault())
     ingredients = RecipeIngredientSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -79,14 +71,10 @@ class RecipesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipes
-        fields = ['id','ingredients','tags','name','author','image','text','cooking_time']
-
+        fields = ['id', 'ingredients', 'tags', 'name', 'author', 'image', 'text', 'cooking_time']
 
     def to_representation(self, instance):
-
         representation = super().to_representation(instance)
-
-        #print(RecipesIngredient.objects.all()[-1])
         tags_data = representation.pop('tags', [])
         representation['tags'] = [
             {
@@ -95,50 +83,41 @@ class RecipesSerializer(serializers.ModelSerializer):
                 "slug": tag.slug
             } for tag in Tag.objects.filter(id__in=tags_data)
         ]
-
-
         return representation
 
-
-
     def create(self, validated_data):
-       # print(validated_data)
-        #print(validated_data)
-
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
-        #print(tags_data[0])
         recipe = Recipes.objects.create(**validated_data)
-        recipe.tags.set(tags_data)
-        #recipe.ingredients.set(ingredients_data)
-        #print(ingredients_data[0]['id'])
-       # print(ingredients_data[0]['amount'])
-        ingred_list=[]
-        print(4)
+        ingred_list = []
         for ingredient_data in ingredients_data:
-            #print(ingredient_data['amount'],1111111111111111111111111111111)
-            b=RecipesIngredient.objects.create(
+            rec_ig = RecipesIngredient.objects.create(
                 recipe=recipe,
                 ingredient=Ingredient.objects.get(pk=ingredient_data['id']),
-                amount = ingredient_data['amount'],
+                amount=ingredient_data['amount'],
             )
-            ingred_list.append(b)
-
+            ingred_list.append(rec_ig)
+        recipe.tags.set(tags_data)
         recipe.ingredients.set(ingred_list)
         return recipe
 
-
     def update(self, instance, validated_data):
-        print(5)
-        instance.image = validated_data.get('image', instance.image)
         instance.author = self.context['request'].user
-        # Обновление поля ingredients
-        ingredients_data = validated_data.pop('ingredients', [])
-        instance.ingredients.all().delete()  # Удаление старых ингредиентов
-        for ingredient_data in ingredients_data:
-            Ingredient.objects.create(recipe=instance, **ingredient_data)
-
         tags_data = validated_data.pop('tags', [])
+        ingredients_data = validated_data.pop('ingredients', [])
+        instance.image = validated_data.get('image', instance.image)
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
+        instance.ingredients.all().delete()
+        ingred_list = []
+        for ingredient_data in ingredients_data:
+            obj = RecipesIngredient.objects.create(
+                recipe=instance,
+                ingredient=Ingredient.objects.get(pk=ingredient_data['id']),
+                amount=ingredient_data['amount'],
+            )
+            ingred_list.append(obj)
+        instance.ingredients.set(ingred_list)
         instance.tags.set(tags_data)
-
-        return super().update(instance, validated_data)
+        return instance

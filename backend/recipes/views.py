@@ -64,21 +64,21 @@ class RecipesListCreateView(RecipesMain, generics.ListCreateAPIView):
     pass
 
 
-class RecipesDetailView(
+class RecipesDetailUpdaateDeleteView(
     RecipesMain,
     generics.RetrieveUpdateDestroyAPIView
-
 ):
     def update(self, request, *args, **kwargs):
-        print(request)
-        print(args)
-        print(kwargs)
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        print(2)
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+            partial=partial)
         serializer.is_valid(raise_exception=True)
-        print(3)
         self.perform_update(serializer)
-
         return Response(serializer.data)
+
+class GetLinkView(APIView):
+    def get(self, request, recipe_id, format=None):
+        pass

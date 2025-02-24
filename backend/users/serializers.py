@@ -93,7 +93,7 @@ class TokenSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     avatar = Base64ImageField(required=False, allow_null=True)
-
+    is_subscribed = serializers.SerializerMethodField()
     class Meta:
         model = User
         fields = (
@@ -102,10 +102,17 @@ class UserSerializer(serializers.ModelSerializer):
             'email',
             'first_name',
             'last_name',
+            'is_subscribed',
             'avatar',
 
         )
         extra_kwargs = {'password': {'write_only': True}}
+
+    def get_is_subscribed(self, obk):
+        user = self.context['request'].user.pk
+        follower = obk.pk
+        return Follow.objects.filter(user_id=follower, follower_id=user).exists()
+
 
 
 class SetPasswordSerializer(serializers.ModelSerializer):

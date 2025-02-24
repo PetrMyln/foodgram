@@ -5,7 +5,8 @@ from recipes.views import (
     IngredientsView,
     IngredientsDetailView, TagsView, TagsDetailView,
     RecipesListCreateView,
-    RecipesDetailView
+    RecipesDetailUpdaateDeleteView,
+    GetLinkView
 )
 
 ingredients_patterns = [
@@ -19,7 +20,8 @@ tags_patterns = [
 
 recipes_patterns = [
     path('', RecipesListCreateView.as_view(), name='recipes-list'),
-    path('<int:pk>/', RecipesDetailView.as_view(), name='recipes-detail'),
+    path('<int:pk>/', RecipesDetailUpdaateDeleteView.as_view(), name='recipes-detail'),
+    path('<int:pk>/get-link/', GetLinkView.as_view(), name='get-short-link'),
 ]
 
 urlpatterns = [
