@@ -6,4 +6,5 @@ LENGTH_SHOW_NAME = 20
 LENGTH_VALUE = 150
 PATH_TO_AVATAR = 'media/users/'
 PATH_TO_IMAGES = 'recipes/images/'
+PATH_TO_IMAGES_SHOP = 'shopingcart/images/'
 USERNAME_RESTRICTION = 'me'

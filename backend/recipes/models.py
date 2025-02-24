@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from foodgram_backend.constant import (
     LENGTH_DISCRIPTION,
     LENGTH_VALUE,
-    PATH_TO_IMAGES,
+    PATH_TO_IMAGES, PATH_TO_IMAGES_SHOP,
 )
 
 
@@ -71,7 +71,6 @@ class Recipes(NameModel):
     image = models.ImageField(
         upload_to=PATH_TO_IMAGES,
         verbose_name='Фото',
-
     )
     ingredients = models.ManyToManyField(
         'RecipesIngredient',
@@ -111,5 +110,11 @@ class RecipeTag(models.Model):
         return f"{self.recipe.name} - {self.tag.name}"
 
 
-class ShoppingCart(models.Model):
-    pass
+class ShoppingCart(NameModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    recept = models.ForeignKey(Recipes, on_delete=models.CASCADE)
+    image = models.ImageField(
+        upload_to=PATH_TO_IMAGES,
+        verbose_name='Фото',
+    )
+    cooking_time =models.IntegerField(null=True)

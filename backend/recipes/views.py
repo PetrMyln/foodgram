@@ -15,8 +15,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
 from rest_framework.renderers import JSONRenderer
 from rest_framework import serializers
-from recipes.models import Ingredient, Tag, Recipes
-from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer
+from recipes.models import Ingredient, Tag, Recipes, ShoppingCart
+from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer
 from users.models import User, Follow
 from users.permissions import UserPermission
 from django_filters.rest_framework import DjangoFilterBackend
@@ -79,6 +79,38 @@ class RecipesDetailUpdaateDeleteView(
         self.perform_update(serializer)
         return Response(serializer.data)
 
+########################
 class GetLinkView(APIView):
     def get(self, request, recipe_id, format=None):
         pass
+
+
+class ShoppingCartView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        #print(request.__dict__)
+        print(self.request.user.pk)
+        user = get_object_or_404(User,id=self.request.user.pk)
+        recipe = get_object_or_404(Recipes,id=request.parser_context['kwargs']['pk'])
+        print(recipe.image, 111111111111111111111111111111111111111111)
+        obj, created = ShoppingCart.objects.get_or_create(
+            recept=recipe,
+            user=user,
+            name=recipe.name,
+            image=recipe.image,
+            cooking_time=recipe.cooking_time
+        )
+        if created:
+            serializer= ShoppingSerializer(obj)
+            return Response(serializer.data, status=status.HTTP_201_CREATED )
+        return Response(
+            {'Ошибка': 'Рецепт уже добавле в корзину.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+    def delete (self, request, pk):
+        print(pk)
+        get_object_or_404(ShoppingCart, recept=pk).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

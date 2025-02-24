@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-eram&=2%f&1dv(=0u4jl65&_-=12xhrk1nh1l+04j0*yeu-msb
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost','foodgram.example.org']
 
 
 # Application definition

@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
 from foodgram_backend.validators import validate_username, ValidationError
-from recipes.models import Ingredient, Tag, Recipes, RecipesIngredient, RecipeTag
+from recipes.models import Ingredient, Tag, Recipes, RecipesIngredient, RecipeTag, ShoppingCart
 from users.serializers import Base64ImageField, UserSerializer
 
 
@@ -121,3 +121,26 @@ class RecipesSerializer(serializers.ModelSerializer):
         instance.ingredients.set(ingred_list)
         instance.tags.set(tags_data)
         return instance
+
+
+
+class ShoppingSerializer(serializers.ModelSerializer):
+    #name = serializers.SerializerMethodField()
+    #image = Base64ImageField(required=False, allow_null=True)
+    #image = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+
+
+    class Meta:
+        model = ShoppingCart
+        fields = ['id', 'name','image','cooking_time']
+
+
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            return request.build_absolute_uri(obj.image.url)
+        return None
+
+
