@@ -16,7 +16,7 @@ class Command(BaseCommand):
                try:
                     Ingredient.objects.create(
                         name=k['name'],
-                        value=k['measurement_unit']
+                        measurement_unit=k['measurement_unit']
                     ).save()
                except Exception:
                    pass

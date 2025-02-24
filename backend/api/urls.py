@@ -28,16 +28,6 @@ users_patterns = [
     path('me/', MyView.as_view(), name='profile-detail'),
     path('set_password/', SetPasswordView.as_view(), name='signup'),
     path('', SignUpView.as_view(), name='signup'),
-    #path('users/(?P<id>\d+)', ProfileView.as_view(), name='profile'),
-    #path('', include(v1_router.urls)),
-
-    #path('users/me/', MyView.as_view(), name='myprofile'),
-
-    #path('', include('djoser.urls')),
-    #path('auth/token/login/', TokenView.as_view(), name='token'),
-    #path('auth/', include('djoser.urls.authtoken')),
-
-
 ]
 
 

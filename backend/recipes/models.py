@@ -40,7 +40,7 @@ class Tag(NameModel):
 
 class Ingredient(NameModel):
 
-    value = models.CharField(
+    measurement_unit = models.CharField(
         verbose_name='Еденица измерения',
         max_length= LENGTH_VALUE,
     )
@@ -48,6 +48,9 @@ class Ingredient(NameModel):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+
+
+
 
 
 class Recipes(NameModel):
@@ -71,9 +74,9 @@ class Recipes(NameModel):
 
     )
     ingredients = models.ManyToManyField(
-        Ingredient,
+        'RecipesIngredient',
         verbose_name ='Ингредиент / Ингредиенты',
-        through='RecipesIngredient',
+
     )
     cooking_time=models.SmallIntegerField(
         verbose_name ='Время приготовления',
@@ -84,7 +87,7 @@ class RecipesIngredient(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        #related_name='recipe_ingredient'
+        related_name='recipe_ingredient'
     )
     recipe = models.ForeignKey(
         Recipes,

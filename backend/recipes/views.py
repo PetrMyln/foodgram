@@ -53,13 +53,32 @@ class TagsView(TagsMain, generics.ListAPIView):
 class TagsDetailView(TagsMain, generics.RetrieveAPIView):
     pass
 
-
-
-
-class RecipesListCreateView(generics.ListCreateAPIView):
+class RecipesMain:
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = RecipesSerializer
     queryset = Recipes.objects.all()
+    pagination_class = PageNumberPagination
 
 
+class RecipesListCreateView(RecipesMain, generics.ListCreateAPIView):
+    pass
 
+
+class RecipesDetailView(
+    RecipesMain,
+    generics.RetrieveUpdateDestroyAPIView
+
+):
+    def update(self, request, *args, **kwargs):
+        print(request)
+        print(args)
+        print(kwargs)
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        print(2)
+        serializer.is_valid(raise_exception=True)
+        print(3)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)

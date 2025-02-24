@@ -4,7 +4,8 @@ from rest_framework import routers
 from recipes.views import (
     IngredientsView,
     IngredientsDetailView, TagsView, TagsDetailView,
-    RecipesListCreateView
+    RecipesListCreateView,
+    RecipesDetailView
 )
 
 ingredients_patterns = [
@@ -18,7 +19,7 @@ tags_patterns = [
 
 recipes_patterns = [
     path('', RecipesListCreateView.as_view(), name='recipes-list'),
-
+    path('<int:pk>/', RecipesDetailView.as_view(), name='recipes-detail'),
 ]
 
 urlpatterns = [

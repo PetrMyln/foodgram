@@ -19,7 +19,7 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = '__all__'
 
-class RecipeTagSerializer(serializers.Serializer):
+class RecipeTagSerializer(serializers.ModelSerializer):
     tag = TagSerializer()
 
     class Meta:
@@ -35,17 +35,33 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+
+
+
 class RecipeIngredientSerializer(serializers.Serializer):
-    #ingredient = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
-    #ingredients = serializers.IntegerField(source='ingredient')
-    #recipes = serializers.IntegerField(read_only=True)
+    #id = IngredientSerializer()
     id = serializers.IntegerField()
+    #id = serializers.PrimaryKeyRelatedField(
+    #    many=True,
+  #      queryset=RecipesIngredient.objects.all()
+ #   )
     amount = serializers.IntegerField()
+
+
 
     class Meta:
         model = RecipesIngredient
-        fields = '__all__'
-        #fields = 'id', 'amount',
+        fields = 'id', 'amount',
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        ing_data = representation.pop('id')
+        ingredient = RecipesIngredient.objects.get(id=ing_data)
+        representation["measurement_unit"] = ingredient.ingredient.measurement_unit
+        representation["name"] = ingredient.ingredient.name
+        representation['id'] = ingredient.ingredient.id
+        return representation
+
 
 
 
@@ -53,39 +69,76 @@ class RecipeIngredientSerializer(serializers.Serializer):
 
 class RecipesSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=False, allow_null=True)
-    #author = UserSerializer(default=serializers.CurrentUserDefault())
-    author =serializers.HiddenField(default=serializers.CurrentUserDefault())
+    author = UserSerializer(default=serializers.CurrentUserDefault())
+    #author =serializers.HiddenField(default=serializers.CurrentUserDefault())
     ingredients = RecipeIngredientSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all()
     )
 
-
-
     class Meta:
         model = Recipes
         fields = ['id','ingredients','tags','name','author','image','text','cooking_time']
-        #fields = '__all__'
-        #read_only_fields = 'author',
+
+
+    def to_representation(self, instance):
+
+        representation = super().to_representation(instance)
+
+        #print(RecipesIngredient.objects.all()[-1])
+        tags_data = representation.pop('tags', [])
+        representation['tags'] = [
+            {
+                'id': tag.id,
+                "name": tag.name,
+                "slug": tag.slug
+            } for tag in Tag.objects.filter(id__in=tags_data)
+        ]
+
+
+        return representation
+
+
 
     def create(self, validated_data):
-        print(validated_data)
+       # print(validated_data)
+        #print(validated_data)
+
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
-        print(tags_data)
+        #print(tags_data[0])
         recipe = Recipes.objects.create(**validated_data)
         recipe.tags.set(tags_data)
         #recipe.ingredients.set(ingredients_data)
         #print(ingredients_data[0]['id'])
        # print(ingredients_data[0]['amount'])
+        ingred_list=[]
+        print(4)
         for ingredient_data in ingredients_data:
-            print(ingredient_data['amount'],1111111111111111111111111111111)
-            RecipesIngredient.objects.create(
+            #print(ingredient_data['amount'],1111111111111111111111111111111)
+            b=RecipesIngredient.objects.create(
                 recipe=recipe,
                 ingredient=Ingredient.objects.get(pk=ingredient_data['id']),
                 amount = ingredient_data['amount'],
             )
+            ingred_list.append(b)
 
-            #print(RecipesIngredient.objects.all()[0].id)
+        recipe.ingredients.set(ingred_list)
         return recipe
+
+
+    def update(self, instance, validated_data):
+        print(5)
+        instance.image = validated_data.get('image', instance.image)
+        instance.author = self.context['request'].user
+        # Обновление поля ingredients
+        ingredients_data = validated_data.pop('ingredients', [])
+        instance.ingredients.all().delete()  # Удаление старых ингредиентов
+        for ingredient_data in ingredients_data:
+            Ingredient.objects.create(recipe=instance, **ingredient_data)
+
+        tags_data = validated_data.pop('tags', [])
+        instance.tags.set(tags_data)
+
+        return super().update(instance, validated_data)
