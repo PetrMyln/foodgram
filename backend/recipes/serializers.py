@@ -137,10 +137,23 @@ class ShoppingSerializer(serializers.ModelSerializer):
 
 
 
-    def get_image(self, obj):
+    def fget_image(self, obj):
         request = self.context.get('request')
         if obj.image:
             return request.build_absolute_uri(obj.image.url)
         return None
+
+
+class FavoriteRecipeSerializer(serializers.ModelSerializer):
+    #name = serializers.SerializerMethodField()
+    #image = Base64ImageField(required=False, allow_null=True)
+    #image = serializers.SerializerMethodField()
+    image = Base64ImageField(required=False, allow_null=True)
+
+
+    class Meta:
+        model = ShoppingCart
+        fields = ['id', 'name','image','cooking_time']
+
 
 

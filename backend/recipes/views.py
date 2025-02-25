@@ -15,8 +15,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
 from rest_framework.renderers import JSONRenderer
 from rest_framework import serializers
-from recipes.models import Ingredient, Tag, Recipes, ShoppingCart
-from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer
+from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecipe
+from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer, \
+    FavoriteRecipeSerializer
 from users.models import User, Follow
 from users.permissions import UserPermission
 from django_filters.rest_framework import DjangoFilterBackend
@@ -89,13 +90,10 @@ class ShoppingCartView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        #print(request.__dict__)
-        print(self.request.user.pk)
         user = get_object_or_404(User,id=self.request.user.pk)
         recipe = get_object_or_404(Recipes,id=request.parser_context['kwargs']['pk'])
-        print(recipe.image, 111111111111111111111111111111111111111111)
         obj, created = ShoppingCart.objects.get_or_create(
-            recept=recipe,
+            recipe=recipe,
             user=user,
             name=recipe.name,
             image=recipe.image,
@@ -111,6 +109,31 @@ class ShoppingCartView(APIView):
 
 
     def delete (self, request, pk):
-        print(pk)
         get_object_or_404(ShoppingCart, recept=pk).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class FavoriteRecipeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        user = get_object_or_404(User,id=self.request.user.pk)
+        recipe = get_object_or_404(Recipes,id=request.parser_context['kwargs']['pk'])
+        obj, created = FavoriteRecipe.objects.get_or_create(
+            recipe=recipe,
+            user=user,
+            name=recipe.name,
+            image=recipe.image,
+            cooking_time=recipe.cooking_time
+        )
+        if created:
+            serializer= FavoriteRecipeSerializer(obj)
+            return Response(serializer.data, status=status.HTTP_201_CREATED )
+        return Response(
+            {'Ошибка': 'Рецепт уже добавле в избранное.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    def delete (self, request, pk):
+        get_object_or_404(FavoriteRecipe, recipe=pk).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

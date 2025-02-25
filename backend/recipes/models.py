@@ -112,9 +112,12 @@ class RecipeTag(models.Model):
 
 class ShoppingCart(NameModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    recept = models.ForeignKey(Recipes, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE)
     image = models.ImageField(
         upload_to=PATH_TO_IMAGES,
         verbose_name='Фото',
     )
     cooking_time =models.IntegerField(null=True)
+
+class FavoriteRecipe(ShoppingCart):
+    pass
