@@ -15,7 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
 
 from users.models import User, Follow
-from users.permissions import UserPermission
+from users.permissions import UserPermission, UserProfilePermission
 from users.serializers import (
     UserSerializer,
     AuthSerializer,
@@ -78,7 +78,7 @@ class MyView(APIView):
 
 
 class MyAvatarView(generics.UpdateAPIView):
-    #permission_classes = [UserPermission]
+    permission_classes = [UserProfilePermission]
     serializer_class = UserSerializer
 
     def put(self, request, *args, **kwargs):
@@ -152,7 +152,10 @@ class SubscribeView(APIView):
             )
         _, created = Follow.objects.get_or_create(follower=subscriber, user=user)
         if created:
-            serializer = UserSerializer(User.objects.get(username=user))
+            serializer = UserSerializer(
+                User.objects.get(username=user),
+                context={'subscriber':subscriber.pk}
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(
             {'Ошибка': 'Выуже подписанны на этого пользователя.'},

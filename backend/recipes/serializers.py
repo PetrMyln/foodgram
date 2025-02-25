@@ -10,7 +10,7 @@ from rest_framework.response import Response
 
 from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
 from foodgram_backend.validators import validate_username, ValidationError
-from recipes.models import Ingredient, Tag, Recipes, RecipesIngredient, RecipeTag, ShoppingCart
+from recipes.models import Ingredient, Tag, Recipes, RecipesIngredient, RecipeTag, ShoppingCart, FavoriteRecipe
 from users.serializers import Base64ImageField, UserSerializer
 
 
@@ -60,22 +60,49 @@ class RecipeIngredientSerializer(serializers.Serializer):
 
 
 class RecipesSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=False, allow_null=True)
-    author = UserSerializer(default=serializers.CurrentUserDefault())
-    # author =serializers.HiddenField(default=serializers.CurrentUserDefault())
-    ingredients = RecipeIngredientSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all()
     )
+    author = UserSerializer(default=serializers.CurrentUserDefault())
+    ingredients = RecipeIngredientSerializer(many=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
+    image = Base64ImageField(required=False, allow_null=True)
+
+
 
     class Meta:
         model = Recipes
-        fields = ['id', 'ingredients', 'tags', 'name', 'author', 'image', 'text', 'cooking_time']
+        fields = [
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'image',
+            'name',
+            'text',
+            'cooking_time',
+
+        ]
+
+
+    def get_is_favorited(self,obj):
+        user = self.context['request'].user.pk
+        recipe = obj.pk
+        return FavoriteRecipe.objects.filter(user_id=user,recipe=recipe).exists()
+
+    def get_is_in_shopping_cart(self,obj):
+        user = self.context['request'].user.pk
+        recipe = obj.pk
+        return ShoppingCart.objects.filter(user_id=user,recipe=recipe).exists()
+
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        tags_data = representation.pop('tags', [])
+        tags_data = representation.get('tags',[])
         representation['tags'] = [
             {
                 'id': tag.id,
@@ -125,10 +152,7 @@ class RecipesSerializer(serializers.ModelSerializer):
 
 
 class ShoppingSerializer(serializers.ModelSerializer):
-    #name = serializers.SerializerMethodField()
-    #image = Base64ImageField(required=False, allow_null=True)
-    #image = serializers.SerializerMethodField()
-    image = serializers.SerializerMethodField()
+    image = Base64ImageField(required=False, allow_null=True)
 
 
     class Meta:
@@ -137,7 +161,7 @@ class ShoppingSerializer(serializers.ModelSerializer):
 
 
 
-    def fget_image(self, obj):
+    def get_image(self, obj):
         request = self.context.get('request')
         if obj.image:
             return request.build_absolute_uri(obj.image.url)

@@ -15,6 +15,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
 from rest_framework.renderers import JSONRenderer
 from rest_framework import serializers
+
+from foodgram_backend.permissions import UserOrReadOnly
 from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecipe
 from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer, \
     FavoriteRecipeSerializer
@@ -26,7 +28,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 class IngredientsMain:
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permissions = (permissions.AllowAny,)
+
 
 
 class IngredientsView(IngredientsMain, generics.ListAPIView):
@@ -34,7 +36,7 @@ class IngredientsView(IngredientsMain, generics.ListAPIView):
     filterset_fields = ('name',)
     renderer_classes = [JSONRenderer]
     search_fields = ['^name']
-    pagination_class = None
+    pagination_class = PageNumberPagination
 
 
 class IngredientsDetailView(IngredientsMain, generics.RetrieveAPIView):
@@ -44,11 +46,15 @@ class IngredientsDetailView(IngredientsMain, generics.RetrieveAPIView):
 class TagsMain:
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permissions = (permissions.AllowAny,)
+
 
 
 class TagsView(TagsMain, generics.ListAPIView):
-    pass
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = ('name',)
+    renderer_classes = [JSONRenderer]
+    search_fields = ['^name']
+    pagination_class = PageNumberPagination
 
 
 class TagsDetailView(TagsMain, generics.RetrieveAPIView):
@@ -61,6 +67,8 @@ class RecipesMain:
     pagination_class = PageNumberPagination
 
 
+
+
 class RecipesListCreateView(RecipesMain, generics.ListCreateAPIView):
     pass
 
@@ -69,6 +77,8 @@ class RecipesDetailUpdaateDeleteView(
     RecipesMain,
     generics.RetrieveUpdateDestroyAPIView
 ):
+    permission_classes = [UserOrReadOnly]
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -109,7 +119,7 @@ class ShoppingCartView(APIView):
 
 
     def delete (self, request, pk):
-        get_object_or_404(ShoppingCart, recept=pk).delete()
+        get_object_or_404(ShoppingCart, recipe=pk).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -137,3 +147,14 @@ class FavoriteRecipeView(APIView):
     def delete (self, request, pk):
         get_object_or_404(FavoriteRecipe, recipe=pk).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+
+
+class IndexListView(generics.ListAPIView):
+    pagination_class = PageNumberPagination
+    queryset = Recipes.objects.all()[:5]
+    serializer_class = RecipesSerializer
+    permission_classes = [permissions.AllowAny]

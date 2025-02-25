@@ -108,10 +108,13 @@ class UserSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {'password': {'write_only': True}}
 
-    def get_is_subscribed(self, obk):
-        user = self.context['request'].user.pk
-        follower = obk.pk
-        return Follow.objects.filter(user_id=follower, follower_id=user).exists()
+    def get_is_subscribed(self, obj):
+        user = obj.pk
+        if self.context.get('subscriber'):
+            follower = self.context['subscriber']
+        if self.context.get('request') is not None:
+            follower = self.context['request'].user.pk
+        return Follow.objects.filter(user_id=user, follower_id=follower).exists()
 
 
 

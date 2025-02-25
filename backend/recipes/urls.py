@@ -7,7 +7,8 @@ from recipes.views import (
     RecipesListCreateView,
     RecipesDetailUpdaateDeleteView,
     GetLinkView, ShoppingCartView,
-    FavoriteRecipeView
+    FavoriteRecipeView,
+    IndexListView
 )
 
 ingredients_patterns = [
@@ -35,5 +36,5 @@ urlpatterns = [
     path('ingredients/', include(ingredients_patterns)),
     path('tags/', include(tags_patterns)),
     path('recipes/', include(recipes_patterns)),
-
+    path('',IndexListView.as_view(), name='index')
 ]

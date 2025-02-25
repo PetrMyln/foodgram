@@ -66,6 +66,8 @@ class Follow(models.Model):
     class Meta:
         unique_together = (('user', 'follower'),)
         ordering = ['-created_at']
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
 
     def __str__(self):
         return f"{self.follower.username} подписан {self.user.username}"
