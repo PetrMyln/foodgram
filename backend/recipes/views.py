@@ -19,7 +19,7 @@ from rest_framework import serializers
 from foodgram_backend.permissions import UserOrReadOnly
 from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecipe
 from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer, \
-    FavoriteRecipeSerializer
+    FavoriteRecipeSerializer, RecipesPostSerializer
 from users.models import User, Follow
 from users.permissions import UserPermission
 from django_filters.rest_framework import DjangoFilterBackend
@@ -28,7 +28,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 class IngredientsMain:
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-
 
 
 class IngredientsView(IngredientsMain, generics.ListAPIView):
@@ -48,7 +47,6 @@ class TagsMain:
     serializer_class = TagSerializer
 
 
-
 class TagsView(TagsMain, generics.ListAPIView):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name',)
@@ -60,13 +58,17 @@ class TagsView(TagsMain, generics.ListAPIView):
 class TagsDetailView(TagsMain, generics.RetrieveAPIView):
     pass
 
+
 class RecipesMain:
     permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = RecipesSerializer
+    serializer_class = RecipesSerializer, RecipesPostSerializer
     queryset = Recipes.objects.all()
     pagination_class = PageNumberPagination
 
-
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH'):
+            return RecipesPostSerializer
+        return RecipesSerializer
 
 
 class RecipesListCreateView(RecipesMain, generics.ListCreateAPIView):
@@ -90,6 +92,7 @@ class RecipesDetailUpdaateDeleteView(
         self.perform_update(serializer)
         return Response(serializer.data)
 
+
 ########################
 class GetLinkView(APIView):
     def get(self, request, recipe_id, format=None):
@@ -100,8 +103,8 @@ class ShoppingCartView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        user = get_object_or_404(User,id=self.request.user.pk)
-        recipe = get_object_or_404(Recipes,id=request.parser_context['kwargs']['pk'])
+        user = get_object_or_404(User, id=self.request.user.pk)
+        recipe = get_object_or_404(Recipes, id=request.parser_context['kwargs']['pk'])
         obj, created = ShoppingCart.objects.get_or_create(
             recipe=recipe,
             user=user,
@@ -110,15 +113,14 @@ class ShoppingCartView(APIView):
             cooking_time=recipe.cooking_time
         )
         if created:
-            serializer= ShoppingSerializer(obj)
-            return Response(serializer.data, status=status.HTTP_201_CREATED )
+            serializer = ShoppingSerializer(obj)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(
             {'Ошибка': 'Рецепт уже добавле в корзину.'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-
-    def delete (self, request, pk):
+    def delete(self, request, pk):
         get_object_or_404(ShoppingCart, recipe=pk).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -127,8 +129,8 @@ class FavoriteRecipeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        user = get_object_or_404(User,id=self.request.user.pk)
-        recipe = get_object_or_404(Recipes,id=request.parser_context['kwargs']['pk'])
+        user = get_object_or_404(User, id=self.request.user.pk)
+        recipe = get_object_or_404(Recipes, id=request.parser_context['kwargs']['pk'])
         obj, created = FavoriteRecipe.objects.get_or_create(
             recipe=recipe,
             user=user,
@@ -137,20 +139,16 @@ class FavoriteRecipeView(APIView):
             cooking_time=recipe.cooking_time
         )
         if created:
-            serializer= FavoriteRecipeSerializer(obj)
-            return Response(serializer.data, status=status.HTTP_201_CREATED )
+            serializer = FavoriteRecipeSerializer(obj)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(
             {'Ошибка': 'Рецепт уже добавле в избранное.'},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    def delete (self, request, pk):
+    def delete(self, request, pk):
         get_object_or_404(FavoriteRecipe, recipe=pk).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-
-
 
 
 class IndexListView(generics.ListAPIView):
