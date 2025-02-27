@@ -10,7 +10,6 @@ services:
     image: postgres:13
     volumes:
       - pg_data:/var/lib/postgresql/data
-
   backend :
     build: ./backend/
     env_file: .env
@@ -19,9 +18,9 @@ services:
       - media:/app/media
     depends_on:
       - db
-
   frontend:
     env_file: .env
+    #build: ./infra/
     build: ./frontend/
     command: sudo cp -r /app/build/. /frontend_static/
     volumes:
