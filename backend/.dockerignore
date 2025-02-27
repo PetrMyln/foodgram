@@ -1,0 +1,5 @@
+venv
+.git
+.env
+.env.example
+db.sqlite3

@@ -180,9 +180,6 @@ class ShoppingSerializer(serializers.ModelSerializer):
 
 
 class FavoriteRecipeSerializer(serializers.ModelSerializer):
-    # name = serializers.SerializerMethodField()
-    # image = Base64ImageField(required=False, allow_null=True)
-    # image = serializers.SerializerMethodField()
     image = Base64ImageField(required=False, allow_null=True)
 
     class Meta:
