@@ -13,20 +13,18 @@ from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth import update_session_auth_hash
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
+from django.contrib.auth.hashers import make_password, check_password
 
 from users.models import User, Follow
-from users.permissions import UserPermission
+from users.permissions import UserPermission, UserProfilePermission
 from users.serializers import (
     UserSerializer,
     AuthSerializer,
     TokenSerializer,
     SetPasswordSerializer,
-    #SubscriptionSerializer,
+    # SubscriptionSerializer,
     FollowSerializer,
 )
-
-
-
 
 
 class SignUpView(generics.ListCreateAPIView):
@@ -46,6 +44,7 @@ class SignUpView(generics.ListCreateAPIView):
             [request.data.get('email')]
         )
         new_data = {k: v for k, v in serializer.data.items() if k != 'password'}
+        new_data['password'] = request.data['password']
         return Response(new_data, status=status.HTTP_200_OK)
 
 
@@ -78,7 +77,7 @@ class MyView(APIView):
 
 
 class MyAvatarView(generics.UpdateAPIView):
-    #permission_classes = [UserPermission]
+    permission_classes = [UserPermission]
     serializer_class = UserSerializer
 
     def put(self, request, *args, **kwargs):
@@ -118,16 +117,14 @@ class SetPasswordView(APIView):
         serializer = SetPasswordSerializer(data=request.data)
         if serializer.is_valid():
             user = request.user
-            if user.check_password(serializer.data.get('current_password')):
-                user.set_password(serializer.data.get('new_password'))
+            if user.password == serializer.data.get('current_password'):
+                user.password = serializer.data.get('new_password')
                 user.save()
-                update_session_auth_hash(request, user)
                 return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(
                 {'Ошибка': 'Неверный пароль'},
                 status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class SubscriptionListView(generics.ListAPIView):
@@ -138,12 +135,11 @@ class SubscriptionListView(generics.ListAPIView):
         return User.objects.filter(following__follower_id=self.request.user.pk)
 
 
-
 class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, id):
-        user =get_object_or_404(User,id=id)
+        user = get_object_or_404(User, id=id)
         subscriber = request.user
         if user == subscriber:
             return Response(
@@ -152,12 +148,16 @@ class SubscribeView(APIView):
             )
         _, created = Follow.objects.get_or_create(follower=subscriber, user=user)
         if created:
-            serializer = UserSerializer(User.objects.get(username=user))
+            serializer = UserSerializer(
+                User.objects.get(username=user),
+                context={'subscriber': subscriber.pk}
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(
             {'Ошибка': 'Выуже подписанны на этого пользователя.'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    def delete (self, request, id):
-        get_object_or_404(Follow,user_id=id).delete()
+
+    def delete(self, request, id):
+        get_object_or_404(Follow, user_id=id).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

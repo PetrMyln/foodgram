@@ -22,12 +22,11 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class AuthSerializer(serializers.Serializer):
+class AuthSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         required=True,
         max_length=LENGTH_TEXT
     )
-    id = serializers.IntegerField(required=False)
     username = serializers.CharField(
         required=True,
         max_length=LENGTH_USERNAME,
@@ -43,11 +42,11 @@ class AuthSerializer(serializers.Serializer):
     class Meta:
         model = User
         fields = (
-            'username',
-            'id',
             'email',
+            'username',
             'first_name',
             'last_name',
+            'password'
         )
 
     def validate(self, data):
@@ -72,7 +71,8 @@ class AuthSerializer(serializers.Serializer):
             email=validated_data.get('email'),
             first_name=validated_data.get('first_name'),
             last_name=validated_data.get('last_name'),
-            password=make_password(validated_data.get('password')),
+            #password=make_password(validated_data.get('password')),
+            password=validated_data.get('password'),
         )
         return user
 
@@ -85,8 +85,7 @@ class TokenSerializer(serializers.Serializer):
         user = get_object_or_404(
             User, email=data.get('email'),
         )
-        rule_password_user = check_password(data.get('password'), user.password)
-        if rule_password_user:
+        if data.get('password') == user.password:
             return user
         return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -97,9 +96,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username',
-            'id',
             'email',
+            'id',
+            'username',
             'first_name',
             'last_name',
             'is_subscribed',
@@ -108,11 +107,20 @@ class UserSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {'password': {'write_only': True}}
 
-    def get_is_subscribed(self, obk):
-        user = self.context['request'].user.pk
-        follower = obk.pk
-        return Follow.objects.filter(user_id=follower, follower_id=user).exists()
-
+    def get_is_subscribed(self, obj):
+        user = obj.pk
+        rule = (
+                self.context.get('subscriber') is None
+                and self.context.get('request') is None
+        )
+        if rule:
+            return False
+        if self.context.get('subscriber'):
+            follower = self.context['subscriber']
+            return Follow.objects.filter(user_id=user, follower_id=follower).exists()
+        if self.context.get('request') is not None:
+            follower = self.context['request'].user.pk
+        return Follow.objects.filter(user_id=user, follower_id=follower).exists()
 
 
 class SetPasswordSerializer(serializers.ModelSerializer):

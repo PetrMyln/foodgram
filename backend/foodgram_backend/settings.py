@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-eram&=2%f&1dv(=0u4jl65&_-=12xhrk1nh1l+04j0*yeu-msb
 DEBUG = True
 
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost','foodgram.example.org']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost','food-gramtryam.zapto.org']
 
 
 # Application definition
@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+'corsheaders',
     'django_filters',
     'djoser',
     'recipes',
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -152,7 +154,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-
+MEDIA_URL = 'http://food-gramtryam.zapto.org/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
@@ -163,4 +165,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
-SENDER_EMAIL = 'foodgram.com'
+SENDER_EMAIL = 'food-gramtryam.zapto.org'
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1',
+
+]
+
+CORS_URLS_REGEX = r'^/api/.*$'

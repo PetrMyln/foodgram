@@ -80,6 +80,19 @@ class Recipes(NameModel):
     cooking_time=models.SmallIntegerField(
         verbose_name ='Время приготовления',
     )
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления',
+        null=True,
+    )
+
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+        ordering = ['-pub_date']
+
+
 
 
 class RecipesIngredient(models.Model):
@@ -99,6 +112,11 @@ class RecipesIngredient(models.Model):
     def __str__(self):
         return f'{self.ingredient.name} {self.amount}'
 
+    class Meta:
+        verbose_name = 'Рецепт и игридиент'
+        verbose_name_plural = 'Рецепты и игридиенты'
+
+
 class RecipeTag(models.Model):
     recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE,related_name='tag_recipes')
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
@@ -109,12 +127,33 @@ class RecipeTag(models.Model):
     def __str__(self):
         return f"{self.recipe.name} - {self.tag.name}"
 
+    class Meta:
+        verbose_name = 'Рецепт и тег'
+        verbose_name_plural = 'Рецепты и теги'
+
 
 class ShoppingCart(NameModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    recept = models.ForeignKey(Recipes, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE)
     image = models.ImageField(
         upload_to=PATH_TO_IMAGES,
         verbose_name='Фото',
     )
     cooking_time =models.IntegerField(null=True)
+
+    class Meta:
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзина'
+
+class FavoriteRecipe(NameModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE)
+    image = models.ImageField(
+        upload_to=PATH_TO_IMAGES,
+        verbose_name='Фото',
+    )
+    cooking_time = models.IntegerField(null=True)
+
+    class Meta:
+        verbose_name = 'Избранный'
+        verbose_name_plural = 'Избранные рецепты'
