@@ -8,11 +8,10 @@ volumes:
 services:
   db:
     image: postgres:13
-
     volumes:
       - pg_data:/var/lib/postgresql/data
-  backend :
 
+  backend :
     build: ./backend/
     env_file: .env
     volumes:
@@ -20,6 +19,7 @@ services:
       - media:/app/media
     depends_on:
       - db
+
   frontend:
     env_file: .env
     build: ./frontend/
