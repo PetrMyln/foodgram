@@ -20,7 +20,6 @@ services:
       - db
   frontend:
     env_file: .env
-    #build: ./infra/
     build: ./frontend/
     command: sudo cp -r /app/build/. /frontend_static/
     volumes:
