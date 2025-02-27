@@ -10,7 +10,7 @@ class Command(BaseCommand):
     help = 'Add csv files'
 
     def handle(self, *args, **kwargs):
-       with open('../data/ingredients.json') as file:
+       with open('./data/ingredients.json') as file:
            rows = load(file)
            for k in rows:
                try:
