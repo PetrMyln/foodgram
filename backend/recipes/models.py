@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from foodgram_backend.constant import (
     LENGTH_DISCRIPTION,
     LENGTH_VALUE,
-    PATH_TO_IMAGES, PATH_TO_IMAGES_SHOP,
+    PATH_TO_IMAGES
 )
 
 
