@@ -22,7 +22,7 @@ services:
   frontend:
     image: petrmyln/foodgram_frontend  # Качаем с Docker Hub
     env_file: .env
-    command: sudo cp -r /app/build/. /frontend_static/
+    command: cp -r /app/build/. /frontend_static/
     volumes:
       - frontend_static_volume:/frontend_static
   nginx:
