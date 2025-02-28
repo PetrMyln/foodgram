@@ -43,7 +43,7 @@ recipes_patterns = [
 auth_patterns = [
     path('token/login/', TokenView.as_view(), name='login'),
     path('', include('djoser.urls.authtoken')),
-
+    path('', SignUpView.as_view(), name='signup'),
 ]
 users_patterns = [
     path('me/avatar/', MyAvatarView.as_view(), name='avatar-detail'),
@@ -53,8 +53,8 @@ users_patterns = [
         SubscriptionListView.as_view(),
         name='subscriptions'
     ),
-    path('set_password/', SetPasswordView.as_view(), name='signup'),
-    path('', SignUpView.as_view(), name='signup'),
+    path('set_password/', SetPasswordView.as_view(), name='set-password'),
+    #path('', SignUpView.as_view(), name='signup'),
 
     path(
         '<int:id>/subscribe/',
