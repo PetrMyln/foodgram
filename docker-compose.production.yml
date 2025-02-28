@@ -6,7 +6,6 @@ volumes:
   static_volume:
   media_volume:
 
-
 services:
   db:
     image: postgres:13.10
@@ -25,7 +24,7 @@ services:
     command: sudo cp -r /app/build/. /frontend_static/
     volumes:
       - static_volume:/foodgram_static
-  gateway:
+  nginx:
     image: petrmyln/foodgram_gateway  # Качаем с Docker Hub
     env_file: .env
     ports:
