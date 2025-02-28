@@ -8,15 +8,12 @@ from django.contrib import admin
 
 
 
-api_patterns = [
-    path('', include('users.urls')),
-    path('', include('recipes.urls')),
-]
+
 
 urlpatterns = [
 
     path('admin/', admin.site.urls),
-    path('api/', include(api_patterns)),
+    path('api/', include('api.urls')),
     path(
         'redoc/',
         TemplateView.as_view(template_name='redoc.html'),
