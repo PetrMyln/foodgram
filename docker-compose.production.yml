@@ -3,7 +3,8 @@ version: '3'
 
 volumes:
   pg_data_production:
-  static_volume:
+  backend_static_volume:
+  frontend_static_volume:
   media_volume:
 
 services:
@@ -16,19 +17,20 @@ services:
     image: petrmyln/foodgram_backend
     env_file: .env
     volumes:
-      - static_volume:/backend_static
+      - backend_static_volume:/backend_static
       - media_volume:/app/media
   frontend:
     image: petrmyln/foodgram_frontend  # Качаем с Docker Hub
     env_file: .env
     command: sudo cp -r /app/build/. /frontend_static/
     volumes:
-      - static_volume:/foodgram_static
+      - frontend_static_volume:/foodgram_static
   nginx:
     image: petrmyln/foodgram_gateway  # Качаем с Docker Hub
     env_file: .env
     ports:
       - 8500:80
     volumes:
-      - static_volume:/staticfiles/
+      - backend_static_volume:/backend_static
+      - frontend_static_volume:/frontend_static
       - media_volume:/app/media
