@@ -15,7 +15,7 @@ from users.views import (
 auth_patterns = [
     path('token/login/', TokenView.as_view(), name='login'),
     path('', include('djoser.urls.authtoken')),
-    path('', SignUpView.as_view(), name='signup'),
+
 
 ]
 
@@ -33,6 +33,7 @@ users_patterns = [
         '<int:id>/subscribe/',
         SubscribeView.as_view(), name='subscribe'),
     path('<int:id>/', ProfileView.as_view(({'get': 'retrieve'})), name='profile'),
+    path('', SignUpView.as_view(), name='signup'),
 ]
 
 urlpatterns = [

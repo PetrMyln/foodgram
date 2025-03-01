@@ -48,6 +48,8 @@ class SignUpView(generics.ListCreateAPIView):
         return Response(new_data, status=status.HTTP_200_OK)
 
 
+
+
 class TokenView(APIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = TokenSerializer

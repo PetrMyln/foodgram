@@ -7,13 +7,16 @@ from django.contrib import admin
 
 
 
-
+aaaa = [
+path('', include('users.urls')),
+path('', include('recipes.urls')),
+]
 
 
 urlpatterns = [
 
     path('admin/', admin.site.urls),
-    path('api/', include('api.urls')),
+    path('api/', include(aaaa)),
     path(
         'redoc/',
         TemplateView.as_view(template_name='redoc.html'),
