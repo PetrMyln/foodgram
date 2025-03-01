@@ -153,7 +153,6 @@ STATIC_ROOT = BASE_DIR / 'collected_static'
 
 
 
-
 AUTH_USER_MODEL = "users.User"
 
 REST_FRAMEWORK = {
