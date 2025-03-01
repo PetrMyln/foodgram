@@ -1,5 +1,8 @@
 from django.urls import include, path
 from rest_framework import routers
+from django.urls import re_path
+from djoser import views
+
 
 from recipes.views import (
     IngredientsView,
@@ -42,7 +45,7 @@ recipes_patterns = [
 ]
 auth_patterns = [
     path('token/login/', TokenView.as_view(), name='login'),
-    path('', include('djoser.urls.authtoken')),
+    re_path(r"^token/logout/?$", views.TokenDestroyView.as_view(), name="logout"),
     #path('', SignUpView.as_view(), name='signup'),
 ]
 users_patterns = [
