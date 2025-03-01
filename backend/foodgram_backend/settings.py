@@ -1,10 +1,14 @@
-import os
 from dotenv import load_dotenv
+import os
+
+from dotenv import load_dotenv
+
 
 from datetime import timedelta
 
 from pathlib import Path
 
+load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -12,6 +16,7 @@ load_dotenv()
 SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
 DEBUG = os.getenv('FOR_DEBAG') == 'False'
+
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
@@ -97,8 +102,6 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', 5432)
     }
 }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -180,4 +183,3 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 SENDER_EMAIL = 'food-gramtryam.zapto.org'
-
