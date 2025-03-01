@@ -1,16 +1,19 @@
 import os
+from dotenv import load_dotenv
+
 from datetime import timedelta
 
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+load_dotenv()
 SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
-DEBUG = os.getenv('FOR_DEBAG') == 'True'
+DEBUG = os.getenv('FOR_DEBAG') == 'False'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
-
 
 
 
@@ -47,12 +50,13 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'foodgram_backend.urls'
 
 
+TEMPLATES_DIR = BASE_DIR / 'templates'
 
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [TEMPLATES_DIR],
 
         'APP_DIRS': True,
         'OPTIONS': {
@@ -71,6 +75,16 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+
+
+"""DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}"""
+
 
 
 DATABASES = {
@@ -125,8 +139,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+"""STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'collected_static'"""
+
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'collected_static'
+STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
+
+
+
 
 AUTH_USER_MODEL = "users.User"
 
