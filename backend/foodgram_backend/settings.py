@@ -147,7 +147,7 @@ USE_TZ = True
 """STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'collected_static'"""
 
-STATIC_URL = '/static/'
+STATIC_URL = '/static_backend/'
 STATIC_ROOT = BASE_DIR / 'collected_static'
 #STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
@@ -185,6 +185,6 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 SENDER_EMAIL = 'food-gramtryam.zapto.org'
 
-#DJOSER = {
- #   'LOGIN_FIELD': 'email',
-#}
+DJOSER = {
+    'LOGIN_FIELD': 'email',
+}

@@ -16,7 +16,7 @@ services:
     image: petrmyln/foodgram_backend
     env_file: .env
     volumes:
-      - backend_static_volume:/backend_static/static
+      - backend_static_volume:/backend_static/static_backend
       - media_volume:/app/media
   frontend:
     image: petrmyln/foodgram_frontend  # Качаем с Docker Hub
