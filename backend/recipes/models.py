@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 
+
 from foodgram_backend.constant import (
     LENGTH_DISCRIPTION,
     LENGTH_VALUE,
@@ -157,3 +158,6 @@ class FavoriteRecipe(NameModel):
     class Meta:
         verbose_name = 'Избранный'
         verbose_name_plural = 'Избранные рецепты'
+
+
+

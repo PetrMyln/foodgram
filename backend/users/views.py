@@ -65,13 +65,12 @@ class TokenView(APIView):
         serializer.is_valid(raise_exception=True)
         user = User.objects.get(email=serializer.data['email'])
         rule = Token.objects.filter(user=user).exists()
+        key = AccessToken.for_user(
+         serializer.validated_data)
         if not rule:
-            key = AccessToken.for_user(
-                serializer.validated_data)
-            Token.objects.create(user=user, key=key)
-        obj=Token.objects.get(user=user)
+            Token.objects.create(user=user)
         return Response(
-            {'auth_token': str(obj.key)},
+            {'auth_token': str(key)},
             status=status.HTTP_200_OK
         )
 

@@ -29,18 +29,28 @@ class RecipesAdmin(admin.ModelAdmin):
         'text',
         'image',
         'favorites_recipe_count',
-        'pub_date'
+        'pub_date',
+        #'ingredients'
+
     )
-    search_fields = ('title', 'author__username')
+    search_fields = ('author__username',)
+   # list_select_related = ('ingredient',)
     list_filter = ('tags',)
     ordering = ('-pub_date',)
     list_display_links = ('name',)
-    filter_horizontal = ('ingredients',)
+    #filter_horizontal = ('ingredients',)
 
     def favorites_recipe_count(self, obj):
         return FavoriteRecipe.objects.filter(recipe=obj).count()
 
     favorites_recipe_count.short_description = "Количество в избранном"
+
+
+    @admin.display(description='Ингредиентыfff')
+    def get_ing_list(self, obj):
+        sqn_of_genre = Ingredient.objects.all()
+        genre_sqn = [curent for curent in sqn_of_genre]
+        return genre_sqn if genre_sqn else 'Добавте жанры к произведению'
 
 
 
