@@ -23,7 +23,7 @@ services:
     env_file: .env
     command: cp -r /app/build/. /frontend_static/
     volumes:
-      - frontend_static_volume:/frontend_static
+      - frontend_static_volume:/frontend_static/
   nginx:
     image: petrmyln/foodgram_gateway  # Качаем с Docker Hub
     env_file: .env
@@ -31,5 +31,5 @@ services:
       - 8500:80
     volumes:
       - backend_static_volume:/backend_static
-      - frontend_static_volume:/frontend_static
+      - frontend_static_volume:/frontend_static/
       - media_volume:/app/media
