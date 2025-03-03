@@ -17,10 +17,10 @@ SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
 DEBUG = os.getenv('FOR_DEBAG') == 'False'
 
-ALLOWED_HOSTS=['127.0.0.1', " http://127.0.0.1:8000/"]
+#ALLOWED_HOSTS=['127.0.0.1', " http://127.0.0.1:8000/"]
 
 
-#ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
 
 
@@ -185,6 +185,6 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 SENDER_EMAIL = 'food-gramtryam.zapto.org'
 
-DfJOSER = {
-    'LOGIN_FIELD': 'email',
-}
+#DJOSER = {
+ #   'LOGIN_FIELD': 'email',
+#}

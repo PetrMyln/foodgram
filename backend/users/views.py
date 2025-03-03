@@ -60,37 +60,18 @@ class TokenView(APIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = TokenSerializer
 
-    def gpost(self, request):
-        serializer = TokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        token = {'auth_token': str(AccessToken.for_user(
-            serializer.validated_data))}
-        return Response(token, status=status.HTTP_200_OK)
-
-
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        print(123123213)
-       # key = str(AccessToken.for_user(
-       #     serializer.validated_data))
-        #print(key)
-        #token = {'auth_token': key}
         user = User.objects.get(email=serializer.data['email'])
-        print(1)
-        obj,created = Token.objects.get_or_create(user=user, key=None)
-        print(2)
         rule = Token.objects.filter(user=user).exists()
-        print(rule)
-        if created or obj.key is None:
-            obj.key = AccessToken.for_user(
+        if not rule:
+            key = AccessToken.for_user(
                 serializer.validated_data)
-            print(obj.key)
-            obj.save()
-        print(obj.key)
-
+            Token.objects.create(user=user, key=key)
+        obj=Token.objects.get(user=user)
         return Response(
-            {'auth_token': obj.key},
+            {'auth_token': str(obj.key)},
             status=status.HTTP_200_OK
         )
 
