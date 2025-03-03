@@ -7,6 +7,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
+
 
 from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
 from foodgram_backend.validators import validate_username, ValidationError
@@ -79,7 +81,7 @@ class AuthSerializer(serializers.ModelSerializer):
 
 class TokenSerializer(serializers.Serializer):
     password = serializers.CharField()
-    email = serializers.EmailField()
+    email = serializers.CharField()
 
     def validate(self, data):
         user = get_object_or_404(
@@ -88,6 +90,8 @@ class TokenSerializer(serializers.Serializer):
         if data.get('password') == user.password:
             return user
         return Response(status=status.HTTP_403_FORBIDDEN)
+
+
 
 
 class UserSerializer(serializers.ModelSerializer):

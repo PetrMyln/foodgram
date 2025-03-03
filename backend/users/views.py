@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from djoser.views import TokenCreateView, TokenDestroyView
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework import generics
@@ -14,6 +15,9 @@ from django.contrib.auth import update_session_auth_hash
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
 from django.contrib.auth.hashers import make_password, check_password
+from rest_framework.authtoken.models import Token
+
+
 
 from users.models import User, Follow
 from users.permissions import UserPermission, UserProfilePermission
@@ -50,9 +54,70 @@ class SignUpView(generics.ListCreateAPIView):
 
 
 
+
+
 class TokenView(APIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = TokenSerializer
+
+    def gpost(self, request):
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = {'auth_token': str(AccessToken.for_user(
+            serializer.validated_data))}
+        return Response(token, status=status.HTTP_200_OK)
+
+
+    def post(self, request):
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        print(123123213)
+       # key = str(AccessToken.for_user(
+       #     serializer.validated_data))
+        #print(key)
+        #token = {'auth_token': key}
+        user = User.objects.get(email=serializer.data['email'])
+        print(1)
+        obj,created = Token.objects.get_or_create(user=user, key=None)
+        print(2)
+        rule = Token.objects.filter(user=user).exists()
+        print(rule)
+        if created or obj.key is None:
+            obj.key = AccessToken.for_user(
+                serializer.validated_data)
+            print(obj.key)
+            obj.save()
+        print(obj.key)
+
+        return Response(
+            {'auth_token': obj.key},
+            status=status.HTTP_200_OK
+        )
+
+
+class TofkenView(APIView):
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = TokenSerializer
+
+    def gpost(self, request):
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.get(email=serializer.data['email'])
+        obj = Token.objects.filter(user=user).exists()
+        print(obj)
+        if not obj:
+            token = AccessToken.for_user(user)
+            Token.objects.create(user=user)
+           # token = AccessToken.for_user(user)
+            #obj.key = token
+            token = {'auth_token': str(token)}
+            print(1111)
+            return Response(token, status=status.HTTP_200_OK)
+        token = {'auth_token': str(
+            Token.objects.get(
+                user=user).key)}
+        print()
+        return Response(token, status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
@@ -60,6 +125,10 @@ class TokenView(APIView):
         token = {'auth_token': str(AccessToken.for_user(
             serializer.validated_data))}
         return Response(token, status=status.HTTP_200_OK)
+
+
+
+
 
 
 class ProfileView(viewsets.ReadOnlyModelViewSet):

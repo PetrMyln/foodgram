@@ -17,10 +17,10 @@ SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
 DEBUG = os.getenv('FOR_DEBAG') == 'False'
 
-#ALLOWED_HOSTS=['127.0.0.1', " http://127.0.0.1:8000/"]
+ALLOWED_HOSTS=['127.0.0.1', " http://127.0.0.1:8000/"]
 
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
+#ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
 
 
@@ -85,16 +85,16 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
 
 
-"""DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}"""
+}
 
 
 
-DATABASES = {
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_DB', 'django'),
@@ -103,7 +103,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', 5432)
     }
-}
+}"""
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -184,3 +184,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 SENDER_EMAIL = 'food-gramtryam.zapto.org'
+
+DfJOSER = {
+    'LOGIN_FIELD': 'email',
+}

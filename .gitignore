@@ -142,3 +142,5 @@ static/
 media/
 /toto2/
 /backend/collected_static/
+/redoc/
+/backend/redoc/

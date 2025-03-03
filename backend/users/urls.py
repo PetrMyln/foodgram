@@ -17,8 +17,21 @@ from users.views import (
 
 auth_patterns = [
     path('token/login/', TokenView.as_view(), name='login'),
-    re_path(r"^token/logout/?$", views.TokenDestroyView.as_view(), name="logout"),
+path("token/logout/", views.TokenDestroyView.as_view(), name="logout"),
 
+   # path('', include('djoser.urls.authtoken')),
+
+
+    #path('token/login/', CustomTokenCreateView.as_view(), name='login'),
+    #path('token/login/', CustomTokenCreateView.as_view(), name='login'),
+    #path("token/logout/", views.TokenDestroyView.as_view(), name="logout"),
+    # path("token/logout/", CustomTokenDestroyView.as_view(), name="logout"),
+#path('', include('djoser.urls')),
+    #path('', include('djoser.urls.authtoken')),
+#re_path(r"^token/login/?$", views.TokenCreateView.as_view(), name="logout"),
+    #path('token/login/', views.TokenObtainPairView.as_view(), name="jwt-create".as_view(), name='login'),
+#path("token/logout/", CustomTokenDestroyView.as_view(), name="logout"),
+    #path('', include('djoser.urls.jwt')),
 
 ]
 
