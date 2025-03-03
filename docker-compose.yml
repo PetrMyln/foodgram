@@ -6,6 +6,7 @@ volumes:
   frontend_static:
   media:
 
+
 services:
   db:
     image: postgres:13
