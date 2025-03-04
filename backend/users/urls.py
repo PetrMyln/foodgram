@@ -13,12 +13,8 @@ auth_patterns = [
     path('', include('djoser.urls.authtoken')),
 ]
 
-users_patterns = [
-    path('users/me/avatar/', MyAvatarView.as_view(), name='avatar-detail'),
-    path('', include('djoser.urls')),
 
-]
-avatar_subscrie_patterns = [
+users_patterns = [
     path('me/avatar/', MyAvatarView.as_view(), name='avatar-detail'),
     path(
         'subscriptions/',
@@ -31,7 +27,7 @@ avatar_subscrie_patterns = [
 ]
 
 urlpatterns = [
-    path('users/', include(avatar_subscrie_patterns)),
-    path('', include(users_patterns)),
+    path('users/', include(users_patterns)),
+    path('', include('djoser.urls')),
     path('auth/', include(auth_patterns)),
 ]

@@ -10,6 +10,7 @@ class Command(BaseCommand):
     help = 'Add csv files'
 
     def handle(self, *args, **kwargs):
+       Ingredient.objects.all().delete()
        with open('./data/ingredients.json') as file:
            rows = load(file)
            for k in rows:
