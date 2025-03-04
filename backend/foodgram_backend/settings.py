@@ -162,7 +162,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 5,
@@ -175,7 +175,8 @@ SIMPLE_JWT = {
 }
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / '/var/www/foodgram/media'
+# = BASE_DIR / '/var/www/foodgram/media'
+MEDIA_ROOT = BASE_DIR / './media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -189,4 +190,8 @@ SENDER_EMAIL = 'food-gramtryam.zapto.org'
 
 DJOSER = {
     'LOGIN_FIELD': 'email',
+    'SERIALIZERS': {
+        'user': 'users.serializers.UsersSerializer',
+        'user_create': 'users.serializers.AuthSerializer',
+    }
 }

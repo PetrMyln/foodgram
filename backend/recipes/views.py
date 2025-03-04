@@ -15,7 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
 from rest_framework.renderers import JSONRenderer
 from rest_framework import serializers
-
+from rest_framework import viewsets
 from foodgram_backend.permissions import UserOrReadOnly
 from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecipe
 from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer, \
@@ -25,12 +25,12 @@ from users.permissions import UserPermission
 from django_filters.rest_framework import DjangoFilterBackend
 
 
-class IngredientsMain:
+
+
+
+class IngredientsView(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-
-
-class IngredientsView(IngredientsMain, generics.ListAPIView):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name',)
     renderer_classes = [JSONRenderer]
@@ -38,16 +38,15 @@ class IngredientsView(IngredientsMain, generics.ListAPIView):
     pagination_class = PageNumberPagination
 
 
-class IngredientsDetailView(IngredientsMain, generics.RetrieveAPIView):
-    pass
 
 
-class TagsMain:
+
+
+
+
+class TagsView(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-
-
-class TagsView(TagsMain, generics.ListAPIView):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name',)
     renderer_classes = [JSONRenderer]
@@ -55,8 +54,27 @@ class TagsView(TagsMain, generics.ListAPIView):
     pagination_class = PageNumberPagination
 
 
-class TagsDetailView(TagsMain, generics.RetrieveAPIView):
-    pass
+class RecipesView(viewsets.ModelViewSet):
+    permission_classes = [UserOrReadOnly]
+    serializer_class = RecipesSerializer, RecipesPostSerializer
+    queryset = Recipes.objects.all()
+    pagination_class = PageNumberPagination
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH'):
+            return RecipesPostSerializer
+        return RecipesSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+            partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 
 class RecipesMain:
@@ -69,6 +87,8 @@ class RecipesMain:
         if self.request.method in ('POST', 'PATCH'):
             return RecipesPostSerializer
         return RecipesSerializer
+
+
 
 
 class RecipesListCreateView(RecipesMain, generics.ListCreateAPIView):

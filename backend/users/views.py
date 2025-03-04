@@ -22,90 +22,8 @@ from rest_framework.authtoken.models import Token
 from users.models import User, Follow
 from users.permissions import UserPermission, UserProfilePermission
 from users.serializers import (
-    UserSerializer,
-    AuthSerializer,
-    TokenSerializer,
-    SetPasswordSerializer,
-    # SubscriptionSerializer,
-    FollowSerializer,
+    UsersSerializer,
 )
-
-
-class SignUpView(generics.ListCreateAPIView):
-    permission_classes = (permissions.AllowAny,)
-    serializer_class = UserSerializer
-    queryset = User.objects.all()
-
-    def post(self, request):
-        serializer = AuthSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            'Код подтверждения',
-            f'Ваш код - {confirmation_code}',
-            settings.SENDER_EMAIL,
-            [request.data.get('email')]
-        )
-        new_data = {k: v for k, v in serializer.data.items() if k != 'password'}
-        new_data['password'] = request.data['password']
-        return Response(new_data, status=status.HTTP_200_OK)
-
-
-
-
-
-
-class TokenView(APIView):
-    permission_classes = (permissions.AllowAny,)
-    serializer_class = TokenSerializer
-
-    def post(self, request):
-        serializer = TokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = User.objects.get(email=serializer.data['email'])
-        rule = Token.objects.filter(user=user).exists()
-        key = AccessToken.for_user(
-         serializer.validated_data)
-        if not rule:
-            Token.objects.create(user=user)
-        return Response(
-            {'auth_token': str(key)},
-            status=status.HTTP_200_OK
-        )
-
-
-class TofkenView(APIView):
-    permission_classes = (permissions.AllowAny,)
-    serializer_class = TokenSerializer
-
-    def gpost(self, request):
-        serializer = TokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = User.objects.get(email=serializer.data['email'])
-        obj = Token.objects.filter(user=user).exists()
-        print(obj)
-        if not obj:
-            token = AccessToken.for_user(user)
-            Token.objects.create(user=user)
-           # token = AccessToken.for_user(user)
-            #obj.key = token
-            token = {'auth_token': str(token)}
-            print(1111)
-            return Response(token, status=status.HTTP_200_OK)
-        token = {'auth_token': str(
-            Token.objects.get(
-                user=user).key)}
-        print()
-        return Response(token, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        serializer = TokenSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        token = {'auth_token': str(AccessToken.for_user(
-            serializer.validated_data))}
-        return Response(token, status=status.HTTP_200_OK)
-
 
 
 
@@ -114,7 +32,7 @@ class TofkenView(APIView):
 class ProfileView(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.AllowAny,)
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UsersSerializer
     lookup_field = 'id'
 
 
@@ -122,14 +40,14 @@ class MyView(APIView):
     def get(self, request):
         user = request.user
         if user.is_authenticated:
-            serializer = UserSerializer(user)
+            serializer = UsersSerializer(user)
             return Response(serializer.data)
         return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class MyAvatarView(generics.UpdateAPIView):
     permission_classes = [UserPermission]
-    serializer_class = UserSerializer
+    serializer_class = UsersSerializer
 
     def put(self, request, *args, **kwargs):
         if not request.data:
@@ -162,24 +80,10 @@ class MyAvatarView(generics.UpdateAPIView):
         serializer.save()
 
 
-class SetPasswordView(APIView):
-
-    def post(self, request):
-        serializer = SetPasswordSerializer(data=request.data)
-        if serializer.is_valid():
-            user = request.user
-            if user.password == serializer.data.get('current_password'):
-                user.password = serializer.data.get('new_password')
-                user.save()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response(
-                {'Ошибка': 'Неверный пароль'},
-                status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SubscriptionListView(generics.ListAPIView):
-    serializer_class = UserSerializer
+    serializer_class = UsersSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -199,7 +103,7 @@ class SubscribeView(APIView):
             )
         _, created = Follow.objects.get_or_create(follower=subscriber, user=user)
         if created:
-            serializer = UserSerializer(
+            serializer = UsersSerializer(
                 User.objects.get(username=user),
                 context={'subscriber': subscriber.pk}
             )

@@ -49,7 +49,7 @@ class Ingredient(NameModel):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
-
+        ordering = ['name']
 
 
 

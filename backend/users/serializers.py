@@ -1,17 +1,11 @@
 import base64
 
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.contrib.auth.hashers import make_password, check_password
 from django.core.files.base import ContentFile
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-
 
 from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
-from foodgram_backend.validators import validate_username, ValidationError
+from foodgram_backend.validators import validate_username
 from users.models import User, Follow
 
 
@@ -58,13 +52,17 @@ class AuthSerializer(serializers.ModelSerializer):
         rule_email = User.objects.filter(email=email).exists()
         if rule_email is True and rule_username is True:
             raise serializers.ValidationError(
-                {'Ошибка': f'Проверьте {email} и {username} уже используются!'})
+                {'Ошибка':
+                     f'Проверьте {email} и '
+                     f'{username} уже используются!'})
         if rule_email:
             raise serializers.ValidationError(
-                {'Ошибка': f'Проверьте {email} уже используется!'})
+                {'Ошибка': f'Проверьте '
+                           f'{email} уже используется!'})
         if rule_username:
             raise serializers.ValidationError(
-                {f'Ошибка': f'Проверьте {username} уже используется!'})
+                {f'Ошибка': f'Проверьте '
+                            f'{username} уже используется!'})
         return data
 
     def create(self, validated_data):
@@ -73,30 +71,15 @@ class AuthSerializer(serializers.ModelSerializer):
             email=validated_data.get('email'),
             first_name=validated_data.get('first_name'),
             last_name=validated_data.get('last_name'),
-            #password=make_password(validated_data.get('password')),
             password=validated_data.get('password'),
         )
         return user
 
 
-class TokenSerializer(serializers.Serializer):
-    password = serializers.CharField()
-    email = serializers.CharField()
-
-    def validate(self, data):
-        user = get_object_or_404(
-            User, email=data.get('email'),
-        )
-        if data.get('password') == user.password:
-            return user
-        return Response(status=status.HTTP_403_FORBIDDEN)
-
-
-
-
-class UserSerializer(serializers.ModelSerializer):
+class UsersSerializer(serializers.ModelSerializer):
     avatar = Base64ImageField(required=False, allow_null=True)
     is_subscribed = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -127,17 +110,6 @@ class UserSerializer(serializers.ModelSerializer):
         return Follow.objects.filter(user_id=user, follower_id=follower).exists()
 
 
-class SetPasswordSerializer(serializers.ModelSerializer):
-    new_password = serializers.CharField()
-    current_password = serializers.CharField()
-
-    class Meta:
-        model = User
-        fields = (
-            'new_password',
-            'current_password',
-        )
-
 class FollowSerializer(serializers.ModelSerializer):
     username = serializers.StringRelatedField(
         read_only=True,
@@ -147,6 +119,3 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = ('username', 'follower', 'created_at')
-
-
-

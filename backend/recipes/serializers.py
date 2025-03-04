@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
 from foodgram_backend.validators import validate_username, ValidationError
 from recipes.models import Ingredient, Tag, Recipes, RecipesIngredient, RecipeTag, ShoppingCart, FavoriteRecipe
-from users.serializers import Base64ImageField, UserSerializer
+from users.serializers import Base64ImageField, UsersSerializer
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -57,7 +57,7 @@ class RecipeMixinSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Tag.objects.all()
     )
-    author = UserSerializer(default=serializers.CurrentUserDefault())
+    author = UsersSerializer(default=serializers.CurrentUserDefault())
     image = Base64ImageField(required=False, allow_null=True)
     ingredients = RecipeIngredientSerializer(many=True)
 
@@ -83,7 +83,7 @@ class RecipesSerializer(RecipeMixinSerializer):
         many=True,
         queryset=Tag.objects.all()
     )
-    author = UserSerializer(default=serializers.CurrentUserDefault())
+    author = UsersSerializer(default=serializers.CurrentUserDefault())
     ingredients = RecipeIngredientSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -129,7 +129,7 @@ class RecipesSerializer(RecipeMixinSerializer):
 
 
 class RecipesPostSerializer(RecipeMixinSerializer):
-    author = UserSerializer(default=serializers.CurrentUserDefault(), write_only=True)
+    author = UsersSerializer(default=serializers.CurrentUserDefault(), write_only=True)
 
     class Meta:
         model = Recipes
