@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count
 
 # Register your models here.
 
@@ -28,22 +29,29 @@ class RecipesAdmin(admin.ModelAdmin):
         'author',
         'text',
         'image',
-        'favorites_recipe_count',
+        #'favorites_recipe_count',
         'pub_date',
         #'ingredients'
 
     )
-    search_fields = ('author__username',)
+    search_fields = ('name', 'author__username')
    # list_select_related = ('ingredient',)
     list_filter = ('tags',)
     ordering = ('-pub_date',)
-    list_display_links = ('name',)
+
     #filter_horizontal = ('ingredients',)
+  #  def get_queryset(self, request):
+   #     queryset = super().get_queryset(request)
+   #     queryset = queryset.annotate(favorites_count=Count('favoriterecipe'))
+    #    return queryset
 
-    def favorites_recipe_count(self, obj):
-        return FavoriteRecipe.objects.filter(recipe=obj).count()
+    def favorites_count(self, obj):
+        return obj.favorites_count
 
-    favorites_recipe_count.short_description = "Количество в избранном"
+   # def favorites_recipe_count(self, obj):
+    #    return FavoriteRecipe.objects.filter(recipe=obj).count()
+#
+    #favorites_recipe_count.short_description = "Количество в избранном"
 
 
     @admin.display(description='Ингредиентыfff')
@@ -59,7 +67,7 @@ class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe','image', 'cooking_time')
 
 class RecipesIngredientAdmin(admin.ModelAdmin):
-    list_display = ('ingredient','recipe','amount')
+    list_display = ('ingredient','amount')
 
 
 class RecipeTagAdmin(admin.ModelAdmin):

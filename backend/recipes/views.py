@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework import generics
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -18,6 +18,7 @@ from rest_framework import serializers
 from rest_framework import viewsets
 from foodgram_backend.permissions import UserOrReadOnly
 from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecipe
+from recipes.paginators import CustomPagination
 from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer, \
     FavoriteRecipeSerializer, RecipesPostSerializer
 from users.models import User, Follow
@@ -34,9 +35,9 @@ class IngredientsView(viewsets.ReadOnlyModelViewSet):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name',)
     renderer_classes = [JSONRenderer]
-    search_fields = ['^name']
-    pagination_class = PageNumberPagination
-
+    search_fields = ['name']
+    pagination_class = None
+    permission_classes = (permissions.AllowAny,)
 
 
 
@@ -51,7 +52,30 @@ class TagsView(viewsets.ReadOnlyModelViewSet):
     filterset_fields = ('name',)
     renderer_classes = [JSONRenderer]
     search_fields = ['^name']
-    pagination_class = PageNumberPagination
+    pagination_class = None
+
+
+
+class RecdipesView(viewsets.ModelViewSet):
+    permission_classes = [UserOrReadOnly]
+    serializer_class = RecipesSerializer, RecipesPostSerializer
+    queryset = Recipes.objects.all()
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = ('^author',)
+    search_fields = ('^author',)
+    pagination_class = [CustomPagination], #CustomPagination]
+   # pagination_class = PageNumberPagination
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH'):
+            return RecipesPostSerializer
+        return RecipesSerializer
+
+
+
+
+
+
 
 
 class RecipesView(viewsets.ModelViewSet):
@@ -59,11 +83,17 @@ class RecipesView(viewsets.ModelViewSet):
     serializer_class = RecipesSerializer, RecipesPostSerializer
     queryset = Recipes.objects.all()
     pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('author','tags',)
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH'):
             return RecipesPostSerializer
         return RecipesSerializer
+
+
+
+
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -77,7 +107,7 @@ class RecipesView(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class RecipesMain:
+"""class RecipesMain:
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = RecipesSerializer, RecipesPostSerializer
     queryset = Recipes.objects.all()
@@ -91,11 +121,11 @@ class RecipesMain:
 
 
 
-class RecipesListCreateView(RecipesMain, generics.ListCreateAPIView):
-    pass
+#class RecipesListCreateView(RecipesMain, generics.ListCreateAPIView):
+    #pass
 
 
-class RecipesDetailUpdaateDeleteView(
+class dRecipesDetailUpdaateDeleteView(
     RecipesMain,
     generics.RetrieveUpdateDestroyAPIView
 ):
@@ -110,7 +140,7 @@ class RecipesDetailUpdaateDeleteView(
             partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response(serializer.data)
+        return Response(serializer.data)"""
 
 
 ########################

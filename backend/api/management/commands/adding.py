@@ -10,15 +10,15 @@ class Command(BaseCommand):
     help = 'Add csv files'
 
     def handle(self, *args, **kwargs):
-       Ingredient.objects.all().delete()
+
        with open('./data/ingredients.json') as file:
            rows = load(file)
            for k in rows:
                try:
-                    Ingredient.objects.create(
+                    _,_=Ingredient.objects.get_or_create(
                         name=k['name'],
                         measurement_unit=k['measurement_unit']
-                    ).save()
+                    )
                except Exception:
                    pass
            else:

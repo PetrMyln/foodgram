@@ -87,16 +87,16 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
 
 
-"""DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}"""
+}
 
 
 
-DATABASES = {
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_DB', 'django'),
@@ -105,7 +105,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', 5432)
     }
-}
+}"""
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -168,6 +168,14 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 5,
 }
 
+PASSWORD_HASHERS = [
+ 'django.contrib.auth.hashers.Argon2PasswordHasher',
+ 'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+ 'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+ 'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+]
+
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
@@ -193,5 +201,12 @@ DJOSER = {
     'SERIALIZERS': {
         'user': 'users.serializers.UsersSerializer',
         'user_create': 'users.serializers.AuthSerializer',
+        'current_user':'users.serializers.UsersSerializer',
+    },
+    'PERMISSIONS': {
+        'user': ['rest_framework.permissions.AllowAny'],  # для конкретного пользователя
+        'user_list': ['rest_framework.permissions.AllowAny'],  # для списка пользователей # для регистрации
+        'user_delete': ['rest_framework.permissions.IsAdminUser',
+                        'rest_framework.permissions.IsAuthenticated'],  # для удаления
     }
 }

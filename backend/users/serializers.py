@@ -3,6 +3,7 @@ import base64
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from django.contrib.auth.hashers import make_password
 
 from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
 from foodgram_backend.validators import validate_username
@@ -12,8 +13,8 @@ from users.models import User, Follow
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
+            form, imgstr = data.split(';base64,')
+            ext = form.split('/')[-1]
             data = ContentFile(base64.b64decode(imgstr), name='image.' + ext)
         return super().to_internal_value(data)
 
@@ -23,6 +24,7 @@ class AuthSerializer(serializers.ModelSerializer):
         required=True,
         max_length=LENGTH_TEXT
     )
+    id = serializers.IntegerField
     username = serializers.CharField(
         required=True,
         max_length=LENGTH_USERNAME,
@@ -33,12 +35,13 @@ class AuthSerializer(serializers.ModelSerializer):
     )
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
-    password = serializers.CharField(required=True)
+    password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
         fields = (
             'email',
+            'id',
             'username',
             'first_name',
             'last_name',
@@ -50,6 +53,15 @@ class AuthSerializer(serializers.ModelSerializer):
         email = data.get('email')
         rule_username = User.objects.filter(username=username).exists()
         rule_email = User.objects.filter(email=email).exists()
+
+        if len(data.get('first_name')) > LENGTH_USERNAME:
+            raise serializers.ValidationError(
+                f"Имя не должен превышать {LENGTH_USERNAME} символов"
+            )
+        if len(data.get('last_name')) > LENGTH_USERNAME:
+            raise serializers.ValidationError(
+                f"Фамилия не должна превышать {LENGTH_USERNAME} символов"
+            )
         if rule_email is True and rule_username is True:
             raise serializers.ValidationError(
                 {'Ошибка':
@@ -71,7 +83,7 @@ class AuthSerializer(serializers.ModelSerializer):
             email=validated_data.get('email'),
             first_name=validated_data.get('first_name'),
             last_name=validated_data.get('last_name'),
-            password=validated_data.get('password'),
+            password=make_password(validated_data.get('password')),
         )
         return user
 
@@ -92,7 +104,6 @@ class UsersSerializer(serializers.ModelSerializer):
             'avatar',
 
         )
-        extra_kwargs = {'password': {'write_only': True}}
 
     def get_is_subscribed(self, obj):
         user = obj.pk
