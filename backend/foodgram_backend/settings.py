@@ -204,9 +204,9 @@ DJOSER = {
         'current_user':'users.serializers.UsersSerializer',
     },
     'PERMISSIONS': {
-        'user': ['rest_framework.permissions.AllowAny'],  # для конкретного пользователя
-        'user_list': ['rest_framework.permissions.AllowAny'],  # для списка пользователей # для регистрации
+        'user': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
         'user_delete': ['rest_framework.permissions.IsAdminUser',
-                        'rest_framework.permissions.IsAuthenticated'],  # для удаления
+                        'rest_framework.permissions.IsAuthenticated'],
     }
 }

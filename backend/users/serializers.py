@@ -7,6 +7,7 @@ from django.contrib.auth.hashers import make_password
 
 from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
 from foodgram_backend.validators import validate_username
+from recipes.models import Recipes
 from users.models import User, Follow
 
 
@@ -49,6 +50,7 @@ class AuthSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
+
         username = data.get('username')
         email = data.get('email')
         rule_username = User.objects.filter(username=username).exists()
@@ -76,6 +78,7 @@ class AuthSerializer(serializers.ModelSerializer):
                 {f'Ошибка': f'Проверьте '
                             f'{username} уже используется!'})
         return data
+
 
     def create(self, validated_data):
         user, _ = User.objects.get_or_create(
@@ -119,6 +122,53 @@ class UsersSerializer(serializers.ModelSerializer):
         if self.context.get('request') is not None:
             follower = self.context['request'].user.pk
         return Follow.objects.filter(user_id=user, follower_id=follower).exists()
+
+
+class RecipeForSubcriber(serializers.ModelSerializer):
+    id =serializers.IntegerField()
+    name = serializers.CharField()
+    image =Base64ImageField()
+    cooking_time = serializers.IntegerField()
+
+    class Meta:
+        model = Recipes
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class SubscribeSerializer(UsersSerializer):
+    recipes=RecipeForSubcriber(many=True, read_only=True)
+    recipes_count = serializers.SerializerMethodField()
+
+    def get_recipes_count(self,obj):
+        return obj.recipes.count()
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count',
+            'avatar',
+        )
+
+    def to_representation(self, instance):
+        context = self.context
+        limit = context.get('lim', None)
+       # print(self.context['request'].query_params)
+        a = self.context['request'].query_params
+        z = a.items()
+        print(*a.items())
+        representation = super().to_representation(instance)
+        if limit:
+
+            recipec_limit = int(*limit.values())
+            representation['recipes'] = representation['recipes'][:recipec_limit]
+        return representation
 
 
 class FollowSerializer(serializers.ModelSerializer):

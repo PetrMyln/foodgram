@@ -16,7 +16,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.renderers import JSONRenderer
 from rest_framework import serializers
 from rest_framework import viewsets
-from foodgram_backend.permissions import UserOrReadOnly
+from foodgram_backend.permissions import UserOrReadOnly, AuthorOrModeratorOrReadOnly
 from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecipe
 from recipes.paginators import CustomPagination
 from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer, \
@@ -79,7 +79,7 @@ class RecdipesView(viewsets.ModelViewSet):
 
 
 class RecipesView(viewsets.ModelViewSet):
-    permission_classes = [UserOrReadOnly]
+    permission_classes = [AuthorOrModeratorOrReadOnly]
     serializer_class = RecipesSerializer, RecipesPostSerializer
     queryset = Recipes.objects.all()
     pagination_class = PageNumberPagination
@@ -92,7 +92,13 @@ class RecipesView(viewsets.ModelViewSet):
         return RecipesSerializer
 
 
-
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(
+            data=request.data,
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data,status=status.HTTP_201_CREATED)
 
 
     def update(self, request, *args, **kwargs):

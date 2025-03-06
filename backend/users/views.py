@@ -17,12 +17,11 @@ from rest_framework.filters import SearchFilter
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework.authtoken.models import Token
 
-
-
+from foodgram_backend.permissions import AuthorOrModeratorOrReadOnly
 from users.models import User, Follow
 from users.permissions import UserPermission, UserProfilePermission
 from users.serializers import (
-    UsersSerializer,
+    UsersSerializer, SubscribeSerializer,
 )
 
 
@@ -46,7 +45,7 @@ class MyView(APIView):
 
 
 class MyAvatarView(generics.UpdateAPIView):
-    permission_classes = [UserPermission]
+    permission_classes = [AuthorOrModeratorOrReadOnly]
     serializer_class = UsersSerializer
 
     def put(self, request, *args, **kwargs):
@@ -83,17 +82,20 @@ class MyAvatarView(generics.UpdateAPIView):
 
 
 class SubscriptionListView(generics.ListAPIView):
-    serializer_class = UsersSerializer
+    serializer_class = SubscribeSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return User.objects.filter(following__follower_id=self.request.user.pk)
 
 
+
 class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, id):
+        value = request.query_params
+
         user = get_object_or_404(User, id=id)
         subscriber = request.user
         if user == subscriber:
@@ -103,9 +105,9 @@ class SubscribeView(APIView):
             )
         _, created = Follow.objects.get_or_create(follower=subscriber, user=user)
         if created:
-            serializer = UsersSerializer(
+            serializer = SubscribeSerializer(
                 User.objects.get(username=user),
-                context={'subscriber': subscriber.pk}
+                context={'subscriber': subscriber.pk, 'lim':value}
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(

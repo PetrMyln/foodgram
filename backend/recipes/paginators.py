@@ -2,9 +2,9 @@ from rest_framework.pagination import PageNumberPagination, LimitOffsetPaginatio
 from rest_framework.response import Response
 
 
-class CustomPagination(PageNumberPagination):
-    page_size_query_param = 'limit'  # используем параметр 'limit' вместо 'page_size'
-    max_page_size = 100  # максимальное количество объектов на странице
+class CustomPagination(LimitOffsetPagination):
+    #page_size_query_param = 'limit'  # используем параметр 'limit' вместо 'page_size'
+    #max_page_size = 100  # максимальное количество объектов на странице
 
     def get_paginated_response(self, data):
         return Response({

@@ -34,8 +34,6 @@ class RecipeTagSerializer(serializers.ModelSerializer):
         fields = 'tag',
 
 
-
-
 class IngredientSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField(max_length=128)
@@ -46,9 +44,6 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-
-
-
 class RecipeIngredientSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     amount = serializers.IntegerField()
@@ -56,8 +51,6 @@ class RecipeIngredientSerializer(serializers.Serializer):
     class Meta:
         model = RecipesIngredient
         fields = 'id', 'name', 'measurement_unit', 'amount',
-
-
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -71,33 +64,118 @@ class RecipeIngredientSerializer(serializers.Serializer):
 
 
 class RecipeMixinSerializer(serializers.ModelSerializer):
+    FIELDS = [
+        'tags', 'author', 'ingredients', 'image', 'name', 'text', 'cooking_time'
+    ]
+    CHECK_FILED_TAGS = 'tags'
+
     id = serializers.IntegerField(required=False)
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all()
     )
     author = UsersSerializer(default=serializers.CurrentUserDefault())
-    image = Base64ImageField(required=False, allow_null=True)
+    image = Base64ImageField()
     ingredients = RecipeIngredientSerializer(many=True)
 
-    def create(self, validated_data):
-        ingredients_data = validated_data.pop('ingredients')
-        tags_data = validated_data.pop('tags')
-        recipe = Recipes.objects.create(**validated_data)
+    def check_ingredient(self, attrs):
+        check_list_for_ingredient = []
+        for c in attrs['ingredients']:
+            if c['amount'] < 1:
+                raise ValidationError(
+                    message='Значение должно быть больше нуля',
+                    code=400,
+                )
+            rule_for_ingredient = Ingredient.objects.filter(id=c['id']).exists()
+            if not rule_for_ingredient:
+                raise ValidationError(
+                    message=f'Не существует ингредиент {c["id"]}',
+                    code=400,
+                )
+            if c["id"] not in check_list_for_ingredient:
+                check_list_for_ingredient.append(c['id'])
+            else:
+                raise ValidationError(
+                    message=f'Вы указали два одинаковых ингредиента',
+                    code=400,
+                )
+        return attrs
 
+    def check_tags(self, attrs):
+        rule_not_same_tags = len(
+            attrs[self.CHECK_FILED_TAGS]) == len(
+            set(attrs[self.CHECK_FILED_TAGS])
+        )
+        if not rule_not_same_tags:
+            raise ValidationError(
+                message=f'Повторяющие значения {self.CHECK_FILED_TAGS}',
+                code=400,
+            )
+        return True
+
+    def check_post_method(self, attrs):
+        not_all_fields = len(self.FIELDS) != len(attrs.keys())
+        empty_fields = all([bool(attrs['ingredients']), bool(attrs['tags'])])
+        if not_all_fields:
+            raise ValidationError(
+                message='Поле не должно быть пустым',
+                code=400
+            )
+        if not empty_fields:
+            raise ValidationError(
+                message='Поле не должно быть пустым',
+                code=400,
+            )
+        self.check_tags(attrs)
+        return self.check_ingredient(attrs)
+
+    def check_patch_method(self, attrs):
+        rule_empty_field_ingredient = 'ingredients' in attrs
+        rule_empty_field_tags = 'tags' in attrs
+        if not all([rule_empty_field_ingredient, rule_empty_field_tags]):
+            raise ValidationError(
+                message=f'Пустые поля ингредиент или таги',
+                code=400,
+            )
+        empty_filds = all([bool(attrs['ingredients']), bool(attrs['tags'])])
+        if not empty_filds:
+            raise ValidationError(
+                message=f'Пустые поля ингредиент или таги',
+                code=400,
+            )
+        self.check_tags(attrs)
+        return self.check_ingredient(attrs)
+
+    def validate(self, attrs):
+        if self.context["request"].method == 'POST':
+            return self.check_post_method(attrs)
+        return self.check_patch_method(attrs)
+
+    def create(self, validated_data):
+        ingredients_data = validated_data.pop('ingredients', [])
+        tags_data = validated_data.pop('tags', [])
+        recipe = Recipes.objects.create(**validated_data)
         ingred_list = []
         for ingredient_data in ingredients_data:
             rec_ig = RecipesIngredient.objects.create(
-               # recipe=recipe,
                 ingredient=Ingredient.objects.get(pk=ingredient_data['id']),
                 amount=ingredient_data['amount'],
             )
             ingred_list.append(rec_ig.pk)
+        for tag in tags_data:
+            RecipeTag.objects.create(
+                recipe=recipe,
+                tag=Tag.objects.get(pk=tag.pk),
+            )
+
         recipe.tags.set(tags_data)
         recipe.ingredients.set(ingred_list)
         return recipe
 
     def get_is_favorited(self, obj):
+        patch_meth_rule = self.context["request"].method == 'PATCH'
+        if patch_meth_rule:
+            return True
         user = self.context['request'].user
         recipe = obj
         FavoriteRecipe.objects.create(
@@ -110,6 +188,9 @@ class RecipeMixinSerializer(serializers.ModelSerializer):
         return FavoriteRecipe.objects.filter(user_id=user, recipe=recipe).exists()
 
     def get_is_in_shopping_cart(self, obj):
+        patch_meth_rule = self.context["request"].method == 'PATCH'
+        if patch_meth_rule:
+            return True
         user = self.context['request'].user
         recipe = obj
         ShoppingCart.objects.create(
@@ -122,15 +203,9 @@ class RecipeMixinSerializer(serializers.ModelSerializer):
         return ShoppingCart.objects.filter(user_id=user, recipe=recipe).exists()
 
 
-
-
-
-
 class RecipesSerializer(RecipeMixinSerializer):
-
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
-
 
     class Meta:
         model = Recipes
@@ -176,7 +251,6 @@ class RecipesPostSerializer(RecipeMixinSerializer):
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
-
     class Meta:
         model = Recipes
         fields = [
@@ -192,8 +266,6 @@ class RecipesPostSerializer(RecipeMixinSerializer):
             'cooking_time',
         ]
 
-
-
     def update(self, instance, validated_data):
         instance.author = self.context['request'].user
         tags_data = validated_data.pop('tags', [])
@@ -206,7 +278,7 @@ class RecipesPostSerializer(RecipeMixinSerializer):
         ingred_list = []
         for ingredient_data in ingredients_data:
             obj = RecipesIngredient.objects.create(
-                #recipe=instance,
+                # recipe=instance,
                 ingredient=Ingredient.objects.get(pk=ingredient_data['id']),
                 amount=ingredient_data['amount'],
             )
@@ -214,8 +286,6 @@ class RecipesPostSerializer(RecipeMixinSerializer):
         instance.ingredients.set(ingred_list)
         instance.tags.set(tags_data)
         return instance
-
-
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -228,11 +298,6 @@ class RecipesPostSerializer(RecipeMixinSerializer):
             } for tag in Tag.objects.filter(id__in=tags_data)
         ]
         return representation
-
-
-
-
-
 
 
 class ShoppingSerializer(serializers.ModelSerializer):

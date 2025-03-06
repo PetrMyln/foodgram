@@ -101,7 +101,7 @@ class Recipes(NameModel):
     cooking_time = models.SmallIntegerField(
         verbose_name='Время приготовления',
         validators=[MinValueValidator(1)],  # Минимальное значение 0
-        default=0
+        default=1
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
