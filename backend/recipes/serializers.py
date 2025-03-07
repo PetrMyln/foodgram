@@ -158,6 +158,7 @@ class RecipeMixinSerializer(serializers.ModelSerializer):
         ingred_list = []
         for ingredient_data in ingredients_data:
             rec_ig = RecipesIngredient.objects.create(
+                recipe=recipe,
                 ingredient=Ingredient.objects.get(pk=ingredient_data['id']),
                 amount=ingredient_data['amount'],
             )
@@ -278,7 +279,7 @@ class RecipesPostSerializer(RecipeMixinSerializer):
         ingred_list = []
         for ingredient_data in ingredients_data:
             obj = RecipesIngredient.objects.create(
-                # recipe=instance,
+                recipe=instance,
                 ingredient=Ingredient.objects.get(pk=ingredient_data['id']),
                 amount=ingredient_data['amount'],
             )

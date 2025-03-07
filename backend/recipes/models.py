@@ -129,14 +129,15 @@ class RecipesIngredient(models.Model):
         Recipes,
         on_delete=models.CASCADE,
         related_name='recipe_ingredients',
-     #   null=True,
-     #   default='не задано'
+        blank=True,
+        null=True,
+        default=0
     )
     amount = models.IntegerField(verbose_name='Количество', null=True)
 
 
-def __str__(self):
-    return f'{self.ingredient.name} {self.amount}'
+    def __str__(self):
+        return f'{self.ingredient.name}'
 
 
 class Meta:

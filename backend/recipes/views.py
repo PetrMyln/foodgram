@@ -16,14 +16,18 @@ from rest_framework.filters import SearchFilter
 from rest_framework.renderers import JSONRenderer
 from rest_framework import serializers
 from rest_framework import viewsets
+
+from foodgram_backend.constant import FILE_PATH
 from foodgram_backend.permissions import UserOrReadOnly, AuthorOrModeratorOrReadOnly
-from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecipe
-from recipes.paginators import CustomPagination
+from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecipe, RecipesIngredient
+from users.paginators import CustomPagination
 from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer, \
     FavoriteRecipeSerializer, RecipesPostSerializer
 from users.models import User, Follow
 from users.permissions import UserPermission
 from django_filters.rest_framework import DjangoFilterBackend
+from django.http import StreamingHttpResponse
+import tempfile
 
 from users.serializers import UsersSerializer
 
@@ -39,11 +43,6 @@ class IngredientsView(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.AllowAny,)
 
 
-
-
-
-
-
 class TagsView(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -54,42 +53,18 @@ class TagsView(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
 
-
-class RecdipesView(viewsets.ModelViewSet):
-    permission_classes = [UserOrReadOnly]
-    serializer_class = RecipesSerializer, RecipesPostSerializer
-    queryset = Recipes.objects.all()
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filterset_fields = ('^author',)
-    search_fields = ('^author',)
-    pagination_class = [CustomPagination], #CustomPagination]
-   # pagination_class = PageNumberPagination
-
-    def get_serializer_class(self):
-        if self.request.method in ('POST', 'PATCH'):
-            return RecipesPostSerializer
-        return RecipesSerializer
-
-
-
-
-
-
-
-
 class RecipesView(viewsets.ModelViewSet):
     permission_classes = [AuthorOrModeratorOrReadOnly]
     serializer_class = RecipesSerializer, RecipesPostSerializer
     queryset = Recipes.objects.all()
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('author','tags',)
+    filterset_fields = ('author', 'tags',)
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH'):
             return RecipesPostSerializer
         return RecipesSerializer
-
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(
@@ -97,8 +72,7 @@ class RecipesView(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return Response(serializer.data,status=status.HTTP_201_CREATED)
-
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -213,15 +187,38 @@ class IndexListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
 
-
 class DownloadShoppingCartView(APIView):
 
-    def get(self, request):
-        print(ShoppingCart.objects.filter(user=request.user))
-        Al_obj = ShoppingCart.objects.filter(user=request.user)
-        for c in Al_obj:
-            print(c.recipe.ingredients)
-        return Response("Ваш ответ", status=status.HTTP_200_OK)
 
-def ura(requste,*args):
+    def get(self, request):
+        shopping = ShoppingCart.objects.select_related('recipe')
+        all_recipe = []
+        for shop in shopping:
+            all_recipe.append(shop.recipe.pk)
+        ings = RecipesIngredient.objects.select_related('ingredient')
+        some_dict = dict()
+        for i in ings:
+            if i.recipe.pk in all_recipe:
+                some_dict.setdefault(
+                    i.ingredient.name, {}
+                ).setdefault(i.ingredient.measurement_unit, []
+                             ).append(i.amount)
+
+        all_str = []
+        for key, value in some_dict.items():
+            for weigt, cnt in value.items():
+                string = f'{key} {str(sum(map(int, cnt)))} {weigt}\n'
+                all_str.append(string)
+        print(all_str)
+        with open(
+                f'{self.request.user.username}.txt',
+                'w',encoding='utf-8'
+        ) as temp:
+            temp.writelines(all_str)
+        return Response({
+            'filename': f'{self.request.user.username}.txt'
+        })
+
+
+def ura(requste, *args):
     return Response('Ok', status=status.HTTP_200_OK)
