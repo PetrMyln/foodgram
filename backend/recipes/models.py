@@ -28,7 +28,6 @@ class NameModel(models.Model):
 
 
 class Tag(models.Model):
-
     name = models.CharField(
         max_length=LENGTH_TAG,
         verbose_name='Название',
@@ -51,13 +50,11 @@ class Tag(models.Model):
 
 
 class Ingredient(NameModel):
-
     name = models.CharField(
         max_length=LENGTH_ING_NAME,
         verbose_name='Название',
 
     )
-
 
     measurement_unit = models.CharField(
         verbose_name='Еденица измерения',
@@ -71,7 +68,6 @@ class Ingredient(NameModel):
 
 
 class Recipes(NameModel):
-
     name = models.CharField(
         max_length=LENGTH_DISCRIPTION,
         verbose_name='Название',
@@ -119,6 +115,7 @@ class Recipes(NameModel):
     def __str__(self):
         return self.name
 
+
 class RecipesIngredient(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
@@ -126,21 +123,25 @@ class RecipesIngredient(models.Model):
         related_name='recipe_ingredient',
         null=True
     )
- #   recipe = models.ForeignKey(
-  #      Recipes,
-#        on_delete=models.CASCADE,
- #       related_name='recipe_ingredients',
- #       null=True,
-  #      default='не задано'
-    #)
+
+
+    recipe = models.ForeignKey(
+        Recipes,
+        on_delete=models.CASCADE,
+        related_name='recipe_ingredients',
+     #   null=True,
+     #   default='не задано'
+    )
     amount = models.IntegerField(verbose_name='Количество', null=True)
 
-    def __str__(self):
-        return f'{self.ingredient.name} {self.amount}'
 
-    class Meta:
-        verbose_name = 'Рецепт и игридиент'
-        verbose_name_plural = 'Рецепты и игридиенты'
+def __str__(self):
+    return f'{self.ingredient.name} {self.amount}'
+
+
+class Meta:
+    verbose_name = 'Рецепт и игридиент'
+    verbose_name_plural = 'Рецепты и игридиенты'
 
 
 class RecipeTag(models.Model):
@@ -159,7 +160,7 @@ class RecipeTag(models.Model):
 
 
 class ShoppingCart(NameModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shopping_cart')
     recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE)
     image = models.ImageField(
         upload_to=PATH_TO_IMAGES,

@@ -25,8 +25,7 @@ from users.models import User, Follow
 from users.permissions import UserPermission
 from django_filters.rest_framework import DjangoFilterBackend
 
-
-
+from users.serializers import UsersSerializer
 
 
 class IngredientsView(viewsets.ReadOnlyModelViewSet):
@@ -212,3 +211,17 @@ class IndexListView(generics.ListAPIView):
     queryset = Recipes.objects.all()[:5]
     serializer_class = RecipesSerializer
     permission_classes = [permissions.AllowAny]
+
+
+
+class DownloadShoppingCartView(APIView):
+
+    def get(self, request):
+        print(ShoppingCart.objects.filter(user=request.user))
+        Al_obj = ShoppingCart.objects.filter(user=request.user)
+        for c in Al_obj:
+            print(c.recipe.ingredients)
+        return Response("Ваш ответ", status=status.HTTP_200_OK)
+
+def ura(requste,*args):
+    return Response('Ok', status=status.HTTP_200_OK)

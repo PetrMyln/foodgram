@@ -79,7 +79,6 @@ class AuthSerializer(serializers.ModelSerializer):
                             f'{username} уже используется!'})
         return data
 
-
     def create(self, validated_data):
         user, _ = User.objects.get_or_create(
             username=validated_data.get('username'),
@@ -125,9 +124,9 @@ class UsersSerializer(serializers.ModelSerializer):
 
 
 class RecipeForSubcriber(serializers.ModelSerializer):
-    id =serializers.IntegerField()
+    id = serializers.IntegerField()
     name = serializers.CharField()
-    image =Base64ImageField()
+    image = Base64ImageField()
     cooking_time = serializers.IntegerField()
 
     class Meta:
@@ -135,11 +134,19 @@ class RecipeForSubcriber(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
+
+
+
+
+
 class SubscribeSerializer(UsersSerializer):
-    recipes=RecipeForSubcriber(many=True, read_only=True)
+    recipes = RecipeForSubcriber(many=True, read_only=True)
     recipes_count = serializers.SerializerMethodField()
 
-    def get_recipes_count(self,obj):
+
+
+
+    def get_recipes_count(self, obj):
         return obj.recipes.count()
 
     class Meta:
@@ -156,18 +163,40 @@ class SubscribeSerializer(UsersSerializer):
             'avatar',
         )
 
-    def to_representation(self, instance):
-        context = self.context
-        limit = context.get('lim', None)
-       # print(self.context['request'].query_params)
-        a = self.context['request'].query_params
-        z = a.items()
-        print(*a.items())
-        representation = super().to_representation(instance)
-        if limit:
 
-            recipec_limit = int(*limit.values())
-            representation['recipes'] = representation['recipes'][:recipec_limit]
+
+    def fto_representation(self, instance):
+        print(0)
+        representation = super().to_representation(instance)
+        query_val=self.context.get('request',None)
+
+        print(self.context.get('request').query_params)
+        if query_val:
+            qury_value = query_val.query_params
+            not_all_obj = int(list(qury_value.items())[0][1])
+            representation['recipes'] = representation['recipes'][:not_all_obj]
+
+        value_limit = self.context.get('lim')
+        if value_limit is not None:
+            recipes_limit = int(value_limit[1])
+            representation['recipes'] = representation['recipes'][:recipes_limit]
+        return representation
+
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        rule = 'post' in self.context.keys()
+        if rule:
+            if self.context['post'] is None:
+                return representation
+            cnt_recipes = int(self.context['post'][1])
+            representation['recipes'] = representation['recipes'][:cnt_recipes]
+            return representation
+        recipe_limit = list(self.context.get('request').query_params.items())
+        if recipe_limit and recipe_limit[0][0]=='recipes_limit':
+            cnt_recipes = int(recipe_limit[0][1])
+            representation['recipes'] = representation['recipes'][:cnt_recipes]
+            return representation
         return representation
 
 

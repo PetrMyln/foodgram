@@ -23,7 +23,7 @@ from users.permissions import UserPermission, UserProfilePermission
 from users.serializers import (
     UsersSerializer, SubscribeSerializer,
 )
-
+from users.paginators import CustomPagination
 
 
 
@@ -84,18 +84,31 @@ class MyAvatarView(generics.UpdateAPIView):
 class SubscriptionListView(generics.ListAPIView):
     serializer_class = SubscribeSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
+
 
     def get_queryset(self):
         return User.objects.filter(following__follower_id=self.request.user.pk)
 
 
 
+
+
+
+
+
 class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, id):
-        value = request.query_params
 
+    def post(self, request, id):
+        #print(request.query_params.items(),222222222222222222222222)
+        check_value_query_params =  list(request.query_params.items())
+        print(check_value_query_params,111111111111112222221111111111111)
+        if check_value_query_params:
+            query_params_value = list(request.query_params.items())[0]
+        else:
+            query_params_value = None
         user = get_object_or_404(User, id=id)
         subscriber = request.user
         if user == subscriber:
@@ -107,7 +120,7 @@ class SubscribeView(APIView):
         if created:
             serializer = SubscribeSerializer(
                 User.objects.get(username=user),
-                context={'subscriber': subscriber.pk, 'lim':value}
+                context={'subscriber': subscriber.pk, 'post': query_params_value}
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(
