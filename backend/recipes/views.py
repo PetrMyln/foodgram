@@ -1,6 +1,10 @@
+from random import choice
+from string import ascii_letters, digits
+
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -54,17 +58,35 @@ class TagsView(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipesView(viewsets.ModelViewSet):
-    permission_classes = [AuthorOrModeratorOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = RecipesSerializer, RecipesPostSerializer
     queryset = Recipes.objects.all()
     pagination_class = CustomPagination
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('author', 'tags',)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = ('author', )
+    search_fields = ('tags', 'ingredients')
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH'):
             return RecipesPostSerializer
         return RecipesSerializer
+
+    def get_queryset(self):
+        queryset = Recipes.objects.all()
+        tags = self.request.query_params.getlist('tags')
+        is_in_shopping_cart = self.request.query_params.get('is_in_shopping_cart')
+        is_favorited = self.request.query_params.get('is_favorited')
+        if  is_in_shopping_cart and self.request.user.is_authenticated:
+            recipes = Recipes.objects.prefetch_related(
+                'shopping_cart').filter(shopping_cart__user=self.request.user)
+            return recipes
+        if  is_favorited and self.request.user.is_authenticated:
+            recipes = Recipes.objects.prefetch_related(
+                'favorite_rec').filter(favorite_rec__user=self.request.user)
+            return recipes
+        if tags:
+            return queryset.filter(tags__slug__in=tags).distinct()
+        return queryset
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(
@@ -75,8 +97,10 @@ class RecipesView(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        if self.request.user != instance.author:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        partial = kwargs.pop('partial', False)
         serializer = self.get_serializer(
             instance,
             data=request.data,
@@ -122,10 +146,14 @@ class dRecipesDetailUpdaateDeleteView(
         return Response(serializer.data)"""
 
 
-########################
 class GetLinkView(APIView):
-    def get(self, request, recipe_id, format=None):
-        pass
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, pk, format=None):
+        characters = ascii_letters + digits
+        response = ''.join(choice(characters) for _ in range(3))
+        url = request.build_absolute_uri().split('/api/')[0] + '/s/' + response
+        return Response({"short-link": url})
 
 
 class ShoppingCartView(APIView):
@@ -150,7 +178,13 @@ class ShoppingCartView(APIView):
         )
 
     def delete(self, request, pk):
-        get_object_or_404(ShoppingCart, recipe=pk).delete()
+        get_object_or_404(Recipes, id=pk)
+        rule_to_delete_recipe = ShoppingCart.objects.filter(
+            user=request.user.pk, recipe=pk
+        )
+        if not rule_to_delete_recipe.exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -189,7 +223,6 @@ class IndexListView(generics.ListAPIView):
 
 class DownloadShoppingCartView(APIView):
 
-
     def get(self, request):
         shopping = ShoppingCart.objects.select_related('recipe')
         all_recipe = []
@@ -197,7 +230,11 @@ class DownloadShoppingCartView(APIView):
             all_recipe.append(shop.recipe.pk)
         ings = RecipesIngredient.objects.select_related('ingredient')
         some_dict = dict()
+        #print(ings)
+        #print(all_recipe)
         for i in ings:
+            if i.recipe.pk is None:
+                i.recipe.delete()
             if i.recipe.pk in all_recipe:
                 some_dict.setdefault(
                     i.ingredient.name, {}
@@ -209,10 +246,10 @@ class DownloadShoppingCartView(APIView):
             for weigt, cnt in value.items():
                 string = f'{key} {str(sum(map(int, cnt)))} {weigt}\n'
                 all_str.append(string)
-        print(all_str)
+
         with open(
                 f'{self.request.user.username}.txt',
-                'w',encoding='utf-8'
+                'w', encoding='utf-8'
         ) as temp:
             temp.writelines(all_str)
         return Response({

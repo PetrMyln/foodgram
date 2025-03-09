@@ -26,8 +26,6 @@ from users.serializers import (
 from users.paginators import CustomPagination
 
 
-
-
 class ProfileView(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.AllowAny,)
     queryset = User.objects.all()
@@ -79,32 +77,20 @@ class MyAvatarView(generics.UpdateAPIView):
         serializer.save()
 
 
-
-
 class SubscriptionListView(generics.ListAPIView):
     serializer_class = SubscribeSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
 
-
     def get_queryset(self):
         return User.objects.filter(following__follower_id=self.request.user.pk)
-
-
-
-
-
-
 
 
 class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
 
-
     def post(self, request, id):
-        #print(request.query_params.items(),222222222222222222222222)
-        check_value_query_params =  list(request.query_params.items())
-        print(check_value_query_params,111111111111112222221111111111111)
+        check_value_query_params = list(request.query_params.items())
         if check_value_query_params:
             query_params_value = list(request.query_params.items())[0]
         else:
@@ -129,5 +115,10 @@ class SubscribeView(APIView):
         )
 
     def delete(self, request, id):
-        get_object_or_404(Follow, user_id=id).delete()
+        get_object_or_404(User, pk=id)
+        rule_is_sub_exists = Follow.objects.filter(
+            follower_id=request.user.pk, user_id=id)
+        if not rule_is_sub_exists.exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        rule_is_sub_exists.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

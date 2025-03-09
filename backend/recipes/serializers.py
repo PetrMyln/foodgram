@@ -224,6 +224,7 @@ class RecipesSerializer(RecipeMixinSerializer):
         ]
 
     def to_representation(self, instance):
+
         representation = super().to_representation(instance)
         tags_data = representation.get('tags', [])
         representation['tags'] = [

@@ -6,7 +6,6 @@ class CustomPagination(PageNumberPagination):
 
     def get_paginated_response(self, data):
         obj_cont = list(self.request.query_params.items())
-        print(obj_cont, 'PAGINATOR')
         if obj_cont and obj_cont[0][0] == 'limit':
             cont_on_page = int(obj_cont[0][1])
             self.page.paginator.count = cont_on_page

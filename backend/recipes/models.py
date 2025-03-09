@@ -161,7 +161,7 @@ class RecipeTag(models.Model):
 
 
 class ShoppingCart(NameModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shopping_cart')
+    user = models.ForeignKey(User, on_delete=models.CASCADE,)
     recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE)
     image = models.ImageField(
         upload_to=PATH_TO_IMAGES,
@@ -172,6 +172,7 @@ class ShoppingCart(NameModel):
     class Meta:
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
+        default_related_name ='shopping_cart'
 
 
 class FavoriteRecipe(NameModel):
@@ -186,3 +187,4 @@ class FavoriteRecipe(NameModel):
     class Meta:
         verbose_name = 'Избранный'
         verbose_name_plural = 'Избранные рецепты'
+        default_related_name = 'favorite_rec'

@@ -144,8 +144,6 @@ class SubscribeSerializer(UsersSerializer):
     recipes_count = serializers.SerializerMethodField()
 
 
-
-
     def get_recipes_count(self, obj):
         return obj.recipes.count()
 
@@ -163,24 +161,6 @@ class SubscribeSerializer(UsersSerializer):
             'avatar',
         )
 
-
-
-    def fto_representation(self, instance):
-        print(0)
-        representation = super().to_representation(instance)
-        query_val=self.context.get('request',None)
-
-        print(self.context.get('request').query_params)
-        if query_val:
-            qury_value = query_val.query_params
-            not_all_obj = int(list(qury_value.items())[0][1])
-            representation['recipes'] = representation['recipes'][:not_all_obj]
-
-        value_limit = self.context.get('lim')
-        if value_limit is not None:
-            recipes_limit = int(value_limit[1])
-            representation['recipes'] = representation['recipes'][:recipes_limit]
-        return representation
 
 
     def to_representation(self, instance):
