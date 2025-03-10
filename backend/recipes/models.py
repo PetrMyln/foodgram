@@ -16,6 +16,7 @@ class NameModel(models.Model):
         verbose_name='Название',
         blank=False,
         db_index=True,
+        unique=False,
     )
 
     class Meta:
@@ -30,7 +31,6 @@ class Tag(models.Model):
     name = models.CharField(
         max_length=LENGTH_TAG,
         verbose_name='Название',
-        unique=True,
         blank=False,
     )
 

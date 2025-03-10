@@ -160,6 +160,8 @@ class FavoriteRecipeView(APIView):
     permission_classes = [AuthorOrReadOnly]
 
     def post(self, request, pk):
+        print(self.request.user.pk)
+        print(request.parser_context['kwargs']['pk'])
         user = get_object_or_404(User, id=self.request.user.pk)
         recipe = get_object_or_404(Recipes, id=request.parser_context['kwargs']['pk'])
         obj, created = FavoriteRecipe.objects.get_or_create(
