@@ -50,6 +50,7 @@ class Tag(models.Model):
 
 
 class Ingredient(NameModel):
+    DEFAULT_IMAGE = 'default/default.jpg'
     name = models.CharField(
         max_length=LENGTH_ING_NAME,
         verbose_name='Название',
@@ -94,6 +95,8 @@ class Recipes(NameModel):
     image = models.ImageField(
         upload_to=PATH_TO_IMAGES,
         verbose_name='Фото',
+        blank=True,
+        null=True
     )
     ingredients = models.ManyToManyField(
         Ingredient,
