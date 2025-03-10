@@ -202,8 +202,9 @@ class DownloadShoppingCartView(APIView):
         ings = RecipesIngredient.objects.select_related('ingredient')
         some_dict = dict()
         for i in ings:
-            if i.recipe.pk is None:
-                i.recipe.delete()
+            #print(i.recipe)
+            if i.recipe is None or i.recipe is None:
+                continue
             if i.recipe.pk in all_recipe:
                 some_dict.setdefault(
                     i.ingredient.name, {}
@@ -216,19 +217,9 @@ class DownloadShoppingCartView(APIView):
                 string = f'{key} {str(sum(map(int, cnt)))} {weigt}\n'
                 all_str.append(string)
 
-        #with open(
-        #        f'{self.request.user.username}.txt',
-        #        'w', encoding='utf-8'
-        #) as temp:
-        #    temp.writelines(all_str)
-        #eturn Response({
-        #'filename': f'{self.request.user.username}.txt'
-        #})
-        response = HttpResponse(content_type='text/plain')
+        response = HttpResponse(content_type='text/txt')
         response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
-
         for item in all_str:
-            response.write(f"{item}\n")
-
+            response.write(f"{item}")
         return response
 
