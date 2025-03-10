@@ -11,9 +11,9 @@ from recipes.views import (
 )
 
 router = DefaultRouter()
-router.register('tags', TagsView)
-router.register('ingredients', IngredientsView)
-router.register('recipes', RecipesView)
+router.register('tags', TagsView, basename='tags')
+router.register('ingredients', IngredientsView, basename='recipes')
+router.register('recipes', RecipesView,  basename='ingredients')
 
 
 
@@ -23,12 +23,12 @@ router.register('recipes', RecipesView)
 recipes_patterns = [
     path('download_shopping_cart/',
          DownloadShoppingCartView.as_view(),
-         name='dwnload-shopcart',
+         name='cart',
          ),
     path('<int:pk>/favorite/',
          FavoriteRecipeView.as_view(), name='favorite-recipe'),
     path('<int:pk>/shopping_cart/',
-         ShoppingCartView.as_view(), name='add-recipe-to-cart'),
+         ShoppingCartView.as_view(), name='cart-view'),
     path(
         '<int:pk>/get-link/',
         GetLinkView.as_view(),

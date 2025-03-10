@@ -26,13 +26,15 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 
 
+
+
 class IngredientsView(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name',)
     renderer_classes = [JSONRenderer]
-    search_fields = ['name']
+    search_fields = ['^name']
     pagination_class = None
     permission_classes = (permissions.AllowAny,)
 
@@ -83,6 +85,7 @@ class RecipesView(viewsets.ModelViewSet):
         serializer = self.get_serializer(
             data=request.data,
         )
+
         serializer.is_valid(raise_exception=True)
         serializer.save(author=self.request.user)
         self.perform_create(serializer)
@@ -227,4 +230,3 @@ class DownloadShoppingCartView(APIView):
         return Response({
             'filename': f'{self.request.user.username}.txt'
         })
-

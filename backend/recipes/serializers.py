@@ -63,6 +63,9 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
+
+
+
 class RecipesSerializer(serializers.ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     author = UsersSerializer(default=serializers.CurrentUserDefault())
@@ -105,6 +108,10 @@ class PostRecipeIngredientSerializer(RecipeIngredientSerializer):
     class Meta:
         model = RecipesIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
+
+
+
+
 
 class RecipesPostSerializer(serializers.ModelSerializer):
     FIELDS = [
@@ -242,6 +249,3 @@ class RecipesPostSerializer(serializers.ModelSerializer):
         instance.tags.clear()
         self.add_tags_ingredients(ingredients, tags, instance)
         return super().update(instance, validated_data)
-
-
-
