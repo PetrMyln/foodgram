@@ -20,7 +20,7 @@ from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecip
 from users.paginators import CustomPagination
 from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer, \
     FavoriteRecipeSerializer, RecipesPostSerializer
-from users.models import User, Follow
+from users.models import User
 from users.permissions import  AuthorOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 
