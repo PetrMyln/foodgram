@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
-DEBUG = True
+DEBUG = False
 # DEBUG = os.getenv('FOR_DEBAG') == 'False'
 
 # ALLOWED_HOSTS=['127.0.0.1', " http://127.0.0.1:8000/"]
