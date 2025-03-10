@@ -186,7 +186,7 @@ class FavoriteRecipeView(APIView):
 
 
 
-class IndexListView(generics.ListAPIView):
+class dIndexListView(generics.ListAPIView):
     pagination_class = PageNumberPagination
     queryset = Recipes.objects.all()[:5]
     serializer_class = RecipesSerializer

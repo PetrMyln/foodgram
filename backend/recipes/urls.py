@@ -6,7 +6,7 @@ from recipes.views import (
     TagsView,
     GetLinkView, ShoppingCartView,
     FavoriteRecipeView,
-    IndexListView,
+    #IndexListView,
     RecipesView, IngredientsView, DownloadShoppingCartView,
 )
 
@@ -42,6 +42,6 @@ urlpatterns = [
     #path('ingredients/', include(ingredients_patterns)),
     path('recipes/', include(recipes_patterns)),
     path('', include(router.urls)),
-    path('',IndexListView.as_view(), name='index'),
+    #path('',IndexListView.as_view(), name='index'),
 
 ]
