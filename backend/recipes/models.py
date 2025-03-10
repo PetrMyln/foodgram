@@ -193,7 +193,7 @@ class ShoppingCart(NameModel):
 
 class FavoriteRecipe(NameModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE, unique=False)
     image = models.ImageField(
         upload_to=PATH_TO_IMAGES,
         verbose_name='Фото',
