@@ -33,10 +33,10 @@ class IngredientsView(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name',)
-    renderer_classes = [JSONRenderer]
     search_fields = ['^name']
     pagination_class = None
     permission_classes = (permissions.AllowAny,)
+
 
 
 class TagsView(viewsets.ReadOnlyModelViewSet):
@@ -189,12 +189,8 @@ class FavoriteRecipeView(APIView):
 
 
 
-class dIndexListView(generics.ListAPIView):
-    pagination_class = PageNumberPagination
-    queryset = Recipes.objects.all()[:5]
-    serializer_class = RecipesSerializer
-    permission_classes = [permissions.AllowAny]
 
+from django.http import HttpResponse
 
 class DownloadShoppingCartView(APIView):
 
@@ -205,8 +201,6 @@ class DownloadShoppingCartView(APIView):
             all_recipe.append(shop.recipe.pk)
         ings = RecipesIngredient.objects.select_related('ingredient')
         some_dict = dict()
-        #print(ings)
-        #print(all_recipe)
         for i in ings:
             if i.recipe.pk is None:
                 i.recipe.delete()
@@ -222,11 +216,19 @@ class DownloadShoppingCartView(APIView):
                 string = f'{key} {str(sum(map(int, cnt)))} {weigt}\n'
                 all_str.append(string)
 
-        with open(
-                f'{self.request.user.username}.txt',
-                'w', encoding='utf-8'
-        ) as temp:
-            temp.writelines(all_str)
-        return Response({
-            'filename': f'{self.request.user.username}.txt'
-        })
+        #with open(
+        #        f'{self.request.user.username}.txt',
+        #        'w', encoding='utf-8'
+        #) as temp:
+        #    temp.writelines(all_str)
+        #eturn Response({
+        #'filename': f'{self.request.user.username}.txt'
+        #})
+        response = HttpResponse(content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
+
+        for item in all_str:
+            response.write(f"{item}\n")
+
+        return response
+
