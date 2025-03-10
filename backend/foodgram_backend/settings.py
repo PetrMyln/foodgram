@@ -3,7 +3,6 @@ import os
 
 from dotenv import load_dotenv
 
-
 from datetime import timedelta
 
 from pathlib import Path
@@ -11,21 +10,16 @@ from pathlib import Path
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
-
 DEBUG = True
-#DEBUG = os.getenv('FOR_DEBAG') == 'False'
+# DEBUG = os.getenv('FOR_DEBAG') == 'False'
 
-#ALLOWED_HOSTS=['127.0.0.1', " http://127.0.0.1:8000/"]
+# ALLOWED_HOSTS=['127.0.0.1', " http://127.0.0.1:8000/"]
 
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
-
-
-
 
 # Application definition
 
@@ -45,7 +39,6 @@ INSTALLED_APPS = [
     'api',
 ]
 
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -58,9 +51,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'foodgram_backend.urls'
 
-
 TEMPLATES_DIR = BASE_DIR / 'templates'
-
 
 TEMPLATES = [
     {
@@ -81,21 +72,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
-
-"""DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}"""
+}
 
-
-DATABASES = {
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_DB', 'django'),
@@ -104,7 +92,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', 5432)
     }
-}
+}"""
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -123,10 +111,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -141,7 +125,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
@@ -150,8 +133,7 @@ STATIC_ROOT = BASE_DIR / 'collected_static'"""
 
 STATIC_URL = '/static_backend/'
 STATIC_ROOT = BASE_DIR / 'collected_static'
-#STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
-
+# STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 
 AUTH_USER_MODEL = "users.User"
@@ -168,13 +150,11 @@ REST_FRAMEWORK = {
 }
 
 PASSWORD_HASHERS = [
- 'django.contrib.auth.hashers.Argon2PasswordHasher',
- 'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
- 'django.contrib.auth.hashers.PBKDF2PasswordHasher',
- 'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
 ]
-
-
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
@@ -200,7 +180,7 @@ DJOSER = {
     'SERIALIZERS': {
         'user': 'users.serializers.UsersSerializer',
         'user_create': 'users.serializers.AuthSerializer',
-        'current_user':'users.serializers.UsersSerializer',
+        'current_user': 'users.serializers.UsersSerializer',
     },
     'PERMISSIONS': {
         'user': [

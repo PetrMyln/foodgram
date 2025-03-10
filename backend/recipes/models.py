@@ -1,11 +1,9 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from foodgram_backend.constant import (
     LENGTH_DISCRIPTION,
-    LENGTH_VALUE,
     PATH_TO_IMAGES, LENGTH_TAG, LENGTH_ING_NAME, LENGTH_ING_MU
 )
 
@@ -16,7 +14,8 @@ class NameModel(models.Model):
     name = models.CharField(
         max_length=LENGTH_DISCRIPTION,
         verbose_name='Название',
-        unique=True,
+        blank=False,
+        db_index=True,
     )
 
     class Meta:
@@ -32,6 +31,7 @@ class Tag(models.Model):
         max_length=LENGTH_TAG,
         verbose_name='Название',
         unique=True,
+        blank=False,
     )
 
     slug = models.SlugField(
@@ -53,12 +53,13 @@ class Ingredient(NameModel):
     name = models.CharField(
         max_length=LENGTH_ING_NAME,
         verbose_name='Название',
-
+        blank=False,
     )
 
     measurement_unit = models.CharField(
         verbose_name='Еденица измерения',
         max_length=LENGTH_ING_MU,
+        blank=False,
     )
 
     class Meta:
@@ -71,17 +72,23 @@ class Recipes(NameModel):
     name = models.CharField(
         max_length=LENGTH_DISCRIPTION,
         verbose_name='Название',
+        blank=False,
+        null=True,
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name='Автор',
+        blank=False,
+
     )
     text = models.TextField(verbose_name='Текст')
 
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Тег / Теги',
+        related_name='recipes',
+        through='RecipeTag'
     )
 
     image = models.ImageField(
@@ -89,12 +96,14 @@ class Recipes(NameModel):
         verbose_name='Фото',
     )
     ingredients = models.ManyToManyField(
-        'RecipesIngredient',
+        Ingredient,
         verbose_name='Ингредиент / Ингредиенты',
-        # through='RecipesIngredient',
+        through='RecipesIngredient',
+        related_name='recipes',
+
 
     )
-    cooking_time = models.SmallIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления',
         validators=[MinValueValidator(1)],  # Минимальное значение 0
         default=1
@@ -121,7 +130,8 @@ class RecipesIngredient(models.Model):
         Ingredient,
         on_delete=models.CASCADE,
         related_name='recipe_ingredient',
-        null=True
+        null=True,
+        blank=False,
     )
 
 
@@ -129,35 +139,41 @@ class RecipesIngredient(models.Model):
         Recipes,
         on_delete=models.CASCADE,
         related_name='recipe_ingredients',
-        blank=True,
         null=True,
-        default=0
     )
-    amount = models.IntegerField(verbose_name='Количество', null=True)
+    amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество',
+        blank=False,
+        default=1
+    )
 
 
     def __str__(self):
-        return f'{self.ingredient.name}'
+        return f'{self.recipe} - {self.ingredient}'
 
 
-class Meta:
-    verbose_name = 'Рецепт и игридиент'
-    verbose_name_plural = 'Рецепты и игридиенты'
+    class Meta:
+        verbose_name = 'Рецепт и игридиент'
+        verbose_name_plural = 'Рецепты и игридиенты'
 
 
 class RecipeTag(models.Model):
-    recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE, related_name='tag_recipes')
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(
+        Recipes, on_delete=models.CASCADE,
+        related_name='tag_recipes',
+        null=True,
+    )
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE,null=True)
 
-    class Meta:
-        unique_together = ('recipe', 'tag')
-
-    def __str__(self):
-        return f"{self.recipe.name} - {self.tag.name}"
+   # class Meta:
+ #       unique_together = ('recipe', 'tag')
 
     class Meta:
         verbose_name = 'Рецепт и тег'
         verbose_name_plural = 'Рецепты и теги'
+
+    def __str__(self):
+        return f"{self.recipe.name} - {self.tag.name}"
 
 
 class ShoppingCart(NameModel):

@@ -7,7 +7,7 @@ from recipes.views import (
     GetLinkView, ShoppingCartView,
     FavoriteRecipeView,
     IndexListView,
-    RecipesView, IngredientsView, DownloadShoppingCartView, ura
+    RecipesView, IngredientsView, DownloadShoppingCartView,
 )
 
 router = DefaultRouter()

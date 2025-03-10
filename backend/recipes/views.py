@@ -1,39 +1,29 @@
 from random import choice
 from string import ascii_letters, digits
 
-from django.conf import settings
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, status, viewsets
-from rest_framework.decorators import action
+from rest_framework import filters, permissions, status
+
 from rest_framework import generics
-from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
-from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import AccessToken
-from django.contrib.auth import update_session_auth_hash
+
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.filters import SearchFilter
+
 from rest_framework.renderers import JSONRenderer
-from rest_framework import serializers
+
 from rest_framework import viewsets
 
-from foodgram_backend.constant import FILE_PATH
-from foodgram_backend.permissions import UserOrReadOnly, AuthorOrModeratorOrReadOnly
 from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecipe, RecipesIngredient
 from users.paginators import CustomPagination
 from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer, \
     FavoriteRecipeSerializer, RecipesPostSerializer
 from users.models import User, Follow
-from users.permissions import UserPermission
+from users.permissions import  AuthorOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
-from django.http import StreamingHttpResponse
-import tempfile
 
-from users.serializers import UsersSerializer
 
 
 class IngredientsView(viewsets.ReadOnlyModelViewSet):
@@ -58,7 +48,8 @@ class TagsView(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipesView(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    http_method_names = 'get', 'post', 'patch', 'delete'
+    permission_classes = [AuthorOrReadOnly]
     serializer_class = RecipesSerializer, RecipesPostSerializer
     queryset = Recipes.objects.all()
     pagination_class = CustomPagination
@@ -93,8 +84,13 @@ class RecipesView(viewsets.ModelViewSet):
             data=request.data,
         )
         serializer.is_valid(raise_exception=True)
+        serializer.save(author=self.request.user)
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -109,41 +105,6 @@ class RecipesView(viewsets.ModelViewSet):
         self.perform_update(serializer)
         return Response(serializer.data)
 
-
-"""class RecipesMain:
-    permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = RecipesSerializer, RecipesPostSerializer
-    queryset = Recipes.objects.all()
-    pagination_class = PageNumberPagination
-
-    def get_serializer_class(self):
-        if self.request.method in ('POST', 'PATCH'):
-            return RecipesPostSerializer
-        return RecipesSerializer
-
-
-
-
-#class RecipesListCreateView(RecipesMain, generics.ListCreateAPIView):
-    #pass
-
-
-class dRecipesDetailUpdaateDeleteView(
-    RecipesMain,
-    generics.RetrieveUpdateDestroyAPIView
-):
-    permission_classes = [UserOrReadOnly]
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance,
-            data=request.data,
-            partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)"""
 
 
 class GetLinkView(APIView):
@@ -169,6 +130,7 @@ class ShoppingCartView(APIView):
             image=recipe.image,
             cooking_time=recipe.cooking_time
         )
+
         if created:
             serializer = ShoppingSerializer(obj)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -178,10 +140,13 @@ class ShoppingCartView(APIView):
         )
 
     def delete(self, request, pk):
+
         get_object_or_404(Recipes, id=pk)
+
         rule_to_delete_recipe = ShoppingCart.objects.filter(
             user=request.user.pk, recipe=pk
         )
+
         if not rule_to_delete_recipe.exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -189,7 +154,7 @@ class ShoppingCartView(APIView):
 
 
 class FavoriteRecipeView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AuthorOrReadOnly]
 
     def post(self, request, pk):
         user = get_object_or_404(User, id=self.request.user.pk)
@@ -210,8 +175,15 @@ class FavoriteRecipeView(APIView):
         )
 
     def delete(self, request, pk):
-        get_object_or_404(FavoriteRecipe, recipe=pk).delete()
+        get_object_or_404(Recipes, id=pk)
+        rule_to_delete_recipe = FavoriteRecipe.objects.filter(
+            user=request.user.pk, recipe=pk
+        )
+        if not rule_to_delete_recipe.exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        get_object_or_404(Recipes, id=pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 class IndexListView(generics.ListAPIView):
@@ -256,6 +228,3 @@ class DownloadShoppingCartView(APIView):
             'filename': f'{self.request.user.username}.txt'
         })
 
-
-def ura(requste, *args):
-    return Response('Ok', status=status.HTTP_200_OK)

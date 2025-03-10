@@ -1,7 +1,4 @@
 from django.contrib import admin
-from django.db.models import Count
-
-# Register your models here.
 
 from recipes.models import (
     Ingredient,
@@ -12,47 +9,34 @@ from recipes.models import (
     ShoppingCart,
     RecipeTag
 
-
 )
+
+
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
-    search_fields = ('name', 'measurement_unit')
+    search_fields = ('name',)
 
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug')
-    search_fields = ('name', 'slug')
+    list_filter = ('name',)
+
 
 class RecipesAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'author',
-        'text',
-        'image',
-        #'favorites_recipe_count',
-        'pub_date',
-        #'ingredients'
-
+        'favorites_recipe_count',
     )
     search_fields = ('name', 'author__username')
-   # list_select_related = ('ingredient',)
     list_filter = ('tags',)
     ordering = ('-pub_date',)
 
-    #filter_horizontal = ('ingredients',)
-  #  def get_queryset(self, request):
-   #     queryset = super().get_queryset(request)
-   #     queryset = queryset.annotate(favorites_count=Count('favoriterecipe'))
-    #    return queryset
+    def favorites_recipe_count(self, obj):
+        return FavoriteRecipe.objects.filter(recipe=obj).count()
 
-    def favorites_count(self, obj):
-        return obj.favorites_count
-
-   # def favorites_recipe_count(self, obj):
-    #    return FavoriteRecipe.objects.filter(recipe=obj).count()
-#
-    #favorites_recipe_count.short_description = "Количество в избранном"
-
+    #
+    favorites_recipe_count.short_description = "Количество в избранном"
 
     @admin.display(description='Ингредиентыfff')
     def get_ing_list(self, obj):
@@ -61,20 +45,17 @@ class RecipesAdmin(admin.ModelAdmin):
         return genre_sqn if genre_sqn else 'Добавте жанры к произведению'
 
 
-
-
 class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ('user', 'recipe','image', 'cooking_time')
+    list_display = ('user', 'recipe', 'image', 'cooking_time')
+
 
 class RecipesIngredientAdmin(admin.ModelAdmin):
-    list_display = ('ingredient','amount')
+    list_display = ('ingredient', 'amount')
 
 
 class RecipeTagAdmin(admin.ModelAdmin):
     list_display = ('tag', 'recipe')
     search_fields = ('tag', 'recipe')
-
-
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
@@ -89,4 +70,3 @@ admin.site.register(FavoriteRecipe, FavoriteAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Recipes, RecipesAdmin)
-

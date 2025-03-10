@@ -19,7 +19,7 @@ from rest_framework.authtoken.models import Token
 
 from foodgram_backend.permissions import AuthorOrModeratorOrReadOnly
 from users.models import User, Follow
-from users.permissions import UserPermission, UserProfilePermission
+
 from users.serializers import (
     UsersSerializer, SubscribeSerializer,
 )
