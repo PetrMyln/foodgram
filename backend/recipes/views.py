@@ -217,8 +217,8 @@ class DownloadShoppingCartView(APIView):
                 string = f'{key} {str(sum(map(int, cnt)))} {weigt}\n'
                 all_str.append(string)
 
-        response = HttpResponse(content_type='text/txt')
-        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
+        response = HttpResponse(content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt".txt'
         for item in all_str:
             response.write(f"{item}")
         return response
