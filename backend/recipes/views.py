@@ -6,7 +6,7 @@ from rest_framework import filters, permissions, status
 
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -137,8 +137,9 @@ class RedirectView(APIView):
         obj=get_object_or_404(ShortLink, short_link=full_url)
         print(obj)
         link = ShortLink.objects.get(short_link=full_url)
-        print(link.original_url)
-        return Response({"short-link":link.original_url})
+        #print(type(link.original_url))
+        return HttpResponseRedirect(link.original_url)
+        #return  redirect(link.original_url)
 
 
 
