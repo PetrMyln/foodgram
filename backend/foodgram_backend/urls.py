@@ -11,12 +11,10 @@ api_patterns = [
     path('', include('recipes.urls')),
 ]
 
-short_link= [
-    path('<str:link>', RedirectView.as_view(), name='redirect')
-]
+
 
 urlpatterns = [
-    path('s/', include(short_link) ),
+    #path('s/', include(short_link) ),
     path('admin/', admin.site.urls),
     path('api/', include(api_patterns)),
     path(

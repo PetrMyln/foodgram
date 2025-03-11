@@ -42,6 +42,8 @@ recipes_patterns = [
 
 urlpatterns = [
 
+    path('<str:link>', RedirectView.as_view(), name='redirect'),
+
     #path('ingredients/', include(ingredients_patterns)),
     path('recipes/', include(recipes_patterns)),
     path('', include(router.urls)),

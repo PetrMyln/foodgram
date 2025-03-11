@@ -116,14 +116,15 @@ class GetLinkView(APIView):
 
         while True:
             response = ''.join(choice(characters) for _ in range(3))
-            url = request.build_absolute_uri().split('/api/')[0] + '/s/' + response
+            url = request.build_absolute_uri().split('/api/')[0].replace('http','https')
+            url = url + '/s/' + response
             if ShortLink.objects.filter(short_link=url).exists():
                 continue
             obj_rec.short_link = url
-            obj_rec.original_url = full_url
+            obj_rec.original_url = full_url.replace('http','https')
             obj_rec.save()
             break
-
+        print(obj_rec.short_link)
         return Response({"short-link": obj_rec.short_link})
 
 class RedirectView(APIView):
