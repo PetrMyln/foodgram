@@ -33,7 +33,7 @@ class RecipesAdmin(admin.ModelAdmin):
         'author',
         'favorites_recipe_count',
     )
-    search_fields = ('name', 'author__username')
+    search_fields = ('name', 'author__username',"author__first_name")
     list_filter = ('tags',)
     ordering = ('-pub_date',)
 

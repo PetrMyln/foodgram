@@ -5,9 +5,9 @@ from users.models import User, Follow
 
 
 class UserAdmin(BaseUserAdmin):
-    list_display = ('username', 'email',)
-    list_filter = ('username', 'email')
-    search_fields = ('username', 'email')
+    list_display = ('username', 'email', 'first_name')
+    #list_filter = ('username', 'email')
+    search_fields = ('username', 'email', 'first_name')
     add_fieldsets = BaseUserAdmin.add_fieldsets
     fieldsets = BaseUserAdmin.fieldsets
 
