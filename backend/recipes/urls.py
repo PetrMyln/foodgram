@@ -2,12 +2,14 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework.routers import DefaultRouter
 from recipes.views import (
-
     TagsView,
-    GetLinkView, ShoppingCartView,
+    GetLinkView,
+    ShoppingCartView,
     FavoriteRecipeView,
-    #IndexListView,
-    RecipesView, IngredientsView, DownloadShoppingCartView,
+    RecipesView,
+    IngredientsView,
+    DownloadShoppingCartView,
+    RedirectView
 )
 
 router = DefaultRouter()
@@ -34,6 +36,7 @@ recipes_patterns = [
         GetLinkView.as_view(),
         name='get-short-link'
     ),
+    path('s/<str:short_code>/', RedirectView.as_view(), name='redirect'),
 
 ]
 

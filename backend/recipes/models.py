@@ -207,3 +207,16 @@ class FavoriteRecipe(NameModel):
         verbose_name = 'Избранный'
         verbose_name_plural = 'Избранные рецепты'
         default_related_name = 'favorite_rec'
+
+class ShortLink(models.Model):
+    recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE)
+    short_link = models.CharField(max_length=3, unique=True)
+    original_url = models.CharField(max_length=120, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Короткая сылка рецепта {self.recipe.pk}"
+
+    class Meta:
+        verbose_name = 'Коротная ссылка'
+        verbose_name_plural = 'Короткие ссылки'

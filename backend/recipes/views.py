@@ -1,7 +1,7 @@
 from random import choice
 from string import ascii_letters, digits
 
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from rest_framework import filters, permissions, status
 
 from rest_framework import generics
@@ -16,16 +16,13 @@ from rest_framework.renderers import JSONRenderer
 
 from rest_framework import viewsets
 
-from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecipe, RecipesIngredient
+from recipes.models import Ingredient, Tag, Recipes, ShoppingCart, FavoriteRecipe, RecipesIngredient, ShortLink
 from users.paginators import CustomPagination
 from recipes.serializers import IngredientSerializer, TagSerializer, RecipesSerializer, ShoppingSerializer, \
     FavoriteRecipeSerializer, RecipesPostSerializer
 from users.models import User
-from users.permissions import  AuthorOrReadOnly
+from users.permissions import AuthorOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
-
-
-
 
 
 class IngredientsView(viewsets.ReadOnlyModelViewSet):
@@ -36,7 +33,6 @@ class IngredientsView(viewsets.ReadOnlyModelViewSet):
     search_fields = ['^name']
     pagination_class = None
     permission_classes = (permissions.AllowAny,)
-
 
 
 class TagsView(viewsets.ReadOnlyModelViewSet):
@@ -55,7 +51,7 @@ class RecipesView(viewsets.ModelViewSet):
     serializer_class = RecipesSerializer, RecipesPostSerializer
     pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filterset_fields = ('author', )
+    filterset_fields = ('author',)
     search_fields = ('tags', 'ingredients')
 
     def get_serializer_class(self):
@@ -68,14 +64,14 @@ class RecipesView(viewsets.ModelViewSet):
         tags = self.request.query_params.getlist('tags')
         is_in_shopping_cart = self.request.query_params.get('is_in_shopping_cart')
         is_favorited = self.request.query_params.get('is_favorited')
-        if  is_in_shopping_cart and self.request.user.is_authenticated:
+        if is_in_shopping_cart and self.request.user.is_authenticated:
             recipes = Recipes.objects.prefetch_related(
                 'shopping_cart').filter(shopping_cart__user=self.request.user)
             return recipes
-        if  is_favorited and self.request.user.is_authenticated:
+        if is_favorited and self.request.user.is_authenticated:
             recipes = Recipes.objects.prefetch_related(
                 'favorite_rec').filter(
-                favorite_rec__user=self.request.user,tags__slug__in=tags).distinct()
+                favorite_rec__user=self.request.user, tags__slug__in=tags).distinct()
             return recipes
         if tags:
             return queryset.filter(tags__slug__in=tags).distinct()
@@ -91,10 +87,6 @@ class RecipesView(viewsets.ModelViewSet):
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
-
-
-
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         if self.request.user != instance.author:
@@ -109,23 +101,45 @@ class RecipesView(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-
 class GetLinkView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, pk, format=None):
+        full_url = request.build_absolute_uri()
+        recipe = Recipes.objects.get(
+            pk=request.parser_context['kwargs'].get('pk')
+        )
+        obj_rec, created = ShortLink.objects.get_or_create(recipe=recipe)
+        if not created:
+            url = obj_rec.short_link
+            return Response({"short-link": url})
         characters = ascii_letters + digits
         response = ''.join(choice(characters) for _ in range(3))
         url = request.build_absolute_uri().split('/api/')[0] + '/s/' + response
-        return Response({"short-link": url})
+        obj_rec.short_link = url
+        obj_rec.original_url = full_url
+        obj_rec.save()
+        return Response({"short-link": obj_rec.short_link})
+
+class RedirectView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, short_code):
+        get_object_or_404(ShortLink, short_link=short_code)
+        link = ShortLink.objects.get(short_link=short_code)
+        return redirect(link.original_link)
+
+
+
+
+
+
+
+
 
 
 class ShoppingCartView(APIView):
     permission_classes = [IsAuthenticated]
-
-
-
-
 
     def post(self, request, pk):
         user = get_object_or_404(User, id=self.request.user.pk)
@@ -192,9 +206,6 @@ class FavoriteRecipeView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
-
-
 class DownloadShoppingCartView(APIView):
 
     def get(self, request):
@@ -225,7 +236,3 @@ class DownloadShoppingCartView(APIView):
         for item in all_str:
             response.write(f"{item}")
         return response
-
-
-
-
