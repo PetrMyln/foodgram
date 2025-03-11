@@ -210,8 +210,8 @@ class FavoriteRecipe(NameModel):
 
 class ShortLink(models.Model):
     recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE)
-    short_link = models.CharField(max_length=3, unique=True)
-    original_url = models.CharField(max_length=120, unique=True)
+    short_link = models.CharField(max_length=15, unique=True)
+    original_url = models.CharField(max_length=256, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
