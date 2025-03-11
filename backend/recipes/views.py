@@ -126,22 +126,22 @@ class GetLinkView(APIView):
         )
         obj_rec, created = ShortLink.objects.get_or_create(recipe=recipe)
         if not created:
+            #print(obj_rec.short_link)
             return Response({"short-link": obj_rec.short_link})
         characters = ascii_letters + digits
 
         while True:
             response = ''.join(choice(characters) for _ in range(3))
             url = request.build_absolute_uri().split(
-                '/api/')[0].replace(
-                'http', 'https'
-            )
+                '/api/')[0]
             url = url + '/s/' + response
             if ShortLink.objects.filter(short_link=url).exists():
                 continue
             obj_rec.short_link = url
-            obj_rec.original_url = full_url.replace('http', 'https')
+            obj_rec.original_url = full_url
             obj_rec.save()
             break
+
         return Response({"short-link": obj_rec.short_link})
 
 
@@ -149,7 +149,9 @@ class RedirectView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, link):
+
         full_url = request.build_absolute_uri()
+        print(full_url)
         link = ShortLink.objects.get(short_link=full_url)
         return redirect(link.original_url, permanent=False)
 

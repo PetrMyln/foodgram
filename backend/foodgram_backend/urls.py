@@ -4,12 +4,25 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 from django.contrib import admin
 
+from recipes.views import (
+
+    RedirectView,
+)
+
 api_patterns = [
     path('', include('users.urls')),
     path('', include('recipes.urls')),
 ]
 
+short_link = [
+
+    path('<str:link>', RedirectView.as_view(), name='redirect')
+
+]
+
+
 urlpatterns = [
+    path('s/', include(short_link)),
     path('admin/', admin.site.urls),
     path('api/', include(api_patterns)),
     path(
