@@ -156,7 +156,7 @@ class ShoppingCartView(APIView):
 
         if not rule_to_delete_recipe.exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
-
+        rule_to_delete_recipe.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -188,7 +188,7 @@ class FavoriteRecipeView(APIView):
         )
         if not rule_to_delete_recipe.exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        get_object_or_404(Recipes, id=pk)
+        rule_to_delete_recipe.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -228,34 +228,4 @@ class DownloadShoppingCartView(APIView):
 
 
 
-class dFavoriteRecipeView(generics.ListCreateAPIView, generics.DestroyAPIView):
-    permission_classes = [AuthorOrReadOnly]
-    #serializer_class = RecipesSerializer, RecipesPostSerializer
-    pagination_class = CustomPagination
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filterset_fields = ('author', )
-    search_fields = ('tags', 'ingredients')
 
-    def dget_serializer_class(self):
-        if self.request.method in 'POST':
-            return RecipesPostSerializer
-        return RecipesSerializer
-
-
-
-    def get_queryset(self):
-        queryset = Recipes.objects.all()
-        tags = self.request.query_params.getlist('tags')
-        is_in_shopping_cart = self.request.query_params.get('is_in_shopping_cart')
-        is_favorited = self.request.query_params.get('is_favorited')
-        if is_in_shopping_cart and self.request.user.is_authenticated:
-            recipes = Recipes.objects.prefetch_related(
-                'shopping_cart').filter(shopping_cart__user=self.request.user)
-            return recipes
-        if is_favorited and self.request.user.is_authenticated:
-            recipes = Recipes.objects.prefetch_related(
-                'favorite_rec').filter(favorite_rec__user=self.request.user)
-            return recipes
-        if tags:
-            return queryset.filter(tags__slug__in=tags).distinct()
-        return queryset
