@@ -12,7 +12,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
-DEBUG = os.getenv('FOR_DEBAG') == 'False'
+
+DEBUG=True
+
+#DEBUG = os.getenv('FOR_DEBAG') == 'False'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
@@ -77,7 +80,6 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }"""
-
 
 
 DATABASES = {
