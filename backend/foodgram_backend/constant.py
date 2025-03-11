@@ -10,19 +10,4 @@ USERNAME_RESTRICTION = 'me'
 LENGTH_TAG = 32
 LENGTH_ING_NAME = 128
 LENGTH_ING_MU = 64
-M_UNITS = {
-    'щепотка': [],
-    'шт.': [],
-    'ч. л.': [],
-    'стакан': [],
-    'ст. л.': [],
-    'мл': [],
-    'кусок': [],
-    'капля': [],
-    'горсть': [],
-    'г': [],
-    'веточка': [],
-    'батон': [],
-    'банка': [],
-}
 FILE_PATH =f'backend/media/files/'

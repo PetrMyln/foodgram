@@ -1,10 +1,16 @@
-from json import load
 from random import choice, randint
+from json import load
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.hashers import make_password
 
-from recipes.models import Ingredient, Tag, Recipes, RecipesIngredient, RecipeTag
+from recipes.models import (
+    Ingredient,
+    Tag,
+    Recipes,
+    RecipesIngredient,
+    RecipeTag
+)
 from users.models import User
 
 tags_main = ['111', '222', '333']
@@ -75,13 +81,13 @@ class Command(BaseCommand):
                         name=str(value_rec) + ' ТЕСТОВЫЙ рецепт',
                         author=user,
                         text=str(value_rec) + ' TEST TEXT',
-                        cooking_time = value
+                        cooking_time=value
                     )
-                    recipeingredients_data =[]
+                    recipeingredients_data = []
                     for ingredient in range(2):
                         recipeingredients_data.append(RecipesIngredient(
                             recipe=obj,
-                            ingredient=Ingredient.objects.get(pk=randint(1,2000)),
+                            ingredient=Ingredient.objects.get(pk=randint(1, 2000)),
                             amount=value
                         ))
                     RecipesIngredient.objects.bulk_create(recipeingredients_data)
@@ -90,7 +96,7 @@ class Command(BaseCommand):
                     for tag in tags:
                         recipetags_data.append(RecipeTag(recipe=obj, tag=tag))
                     RecipeTag.objects.bulk_create(recipetags_data)
-                    value_rec+=1
+                    value_rec += 1
             else:
                 print('FINI users, rec')
         except:

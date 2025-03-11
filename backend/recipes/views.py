@@ -205,6 +205,7 @@ class DownloadShoppingCartView(APIView):
         ings = RecipesIngredient.objects.select_related('ingredient')
         some_dict = dict()
         for i in ings:
+
             if i.recipe is None or i.recipe is None:
                 continue
             if i.recipe.pk in all_recipe:
@@ -219,14 +220,8 @@ class DownloadShoppingCartView(APIView):
                 string = f'{key} {str(sum(map(int, cnt)))} {weigt}\n'
                 all_str.append(string)
 
-        response = HttpResponse(content_type='text/plain; charset=utf-8')
-        response[
-            'Content-Disposition'] = (
-            'attachment; filename="shopping_list.txt";'
-            'filename*=UTF-8\'\'shopping_list.txt'
-        )
-        response['Content-Transfer-Encoding'] = 'binary'
-        response['Content-Length'] = len(all_str)
+        response = HttpResponse(content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
         for item in all_str:
             response.write(f"{item}")
         return response

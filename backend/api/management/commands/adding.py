@@ -1,14 +1,13 @@
 from json import load
-from random import choice, randint
 
-from django.core.checks import Tags
 from django.core.management.base import BaseCommand
 from django.contrib.auth.hashers import make_password
 
-from recipes.models import Ingredient, Tag, Recipes, RecipesIngredient, RecipeTag
+from recipes.models import Ingredient, Tag
 from users.models import User
 
 tags_main = ['111', '222', '333']
+
 
 class Command(BaseCommand):
     help = 'Add csv files'
@@ -49,4 +48,3 @@ class Command(BaseCommand):
 
             else:
                 print('100% load')
-
