@@ -105,7 +105,7 @@ class GetLinkView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, pk, format=None):
-        full_url = request.build_absolute_uri()
+        full_url = request.build_absolute_uri()[:-10]
         recipe = Recipes.objects.get(
             pk=request.parser_context['kwargs'].get('pk')
         )
@@ -118,7 +118,6 @@ class GetLinkView(APIView):
         obj_rec.short_link = url
         obj_rec.original_url = full_url
         obj_rec.save()
-        print(obj_rec.short_link)
         return Response({"short-link": obj_rec.short_link})
 
 class RedirectView(APIView):
