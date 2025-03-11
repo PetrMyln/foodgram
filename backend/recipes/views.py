@@ -75,7 +75,7 @@ class RecipesView(viewsets.ModelViewSet):
         if  is_favorited and self.request.user.is_authenticated:
             recipes = Recipes.objects.prefetch_related(
                 'favorite_rec').filter(
-                favorite_rec__user=self.request.user,tags__slug__in=tags)
+                favorite_rec__user=self.request.user,tags__slug__in=tags).distinct()
             return recipes
         if tags:
             return queryset.filter(tags__slug__in=tags).distinct()
