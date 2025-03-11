@@ -7,9 +7,14 @@ from recipes.models import (
     FavoriteRecipe,
     RecipesIngredient,
     ShoppingCart,
-    RecipeTag
+    RecipeTag,
+    ShortLink
 
 )
+
+class ShortLinkAdmin(admin.ModelAdmin):
+    list_display = ('recipe', 'short_link','original_url')
+    search_fields = ('recipe',)
 
 
 class IngredientAdmin(admin.ModelAdmin):
@@ -63,6 +68,9 @@ class ShoppingCartAdmin(admin.ModelAdmin):
     search_fields = ('user', 'recipe')
 
 
+
+
+admin.site.register(ShortLink, ShortLinkAdmin)
 admin.site.register(ShoppingCart, ShoppingCartAdmin)
 admin.site.register(RecipeTag, RecipeTagAdmin)
 admin.site.register(RecipesIngredient, RecipesIngredientAdmin)

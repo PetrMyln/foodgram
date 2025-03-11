@@ -111,14 +111,14 @@ class GetLinkView(APIView):
         )
         obj_rec, created = ShortLink.objects.get_or_create(recipe=recipe)
         if not created:
-            url = obj_rec.short_link
-            return Response({"short-link": url})
+            return Response({"short-link": obj_rec.short_link})
         characters = ascii_letters + digits
         response = ''.join(choice(characters) for _ in range(3))
         url = request.build_absolute_uri().split('/api/')[0] + '/s/' + response
         obj_rec.short_link = url
         obj_rec.original_url = full_url
         obj_rec.save()
+        print(obj_rec.short_link)
         return Response({"short-link": obj_rec.short_link})
 
 class RedirectView(APIView):
