@@ -2,8 +2,8 @@ import base64
 
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.files.base import ContentFile
-from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
+from rest_framework import serializers
 
 from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
 from foodgram_backend.validators import validate_username
@@ -16,7 +16,9 @@ class Base64ImageField(serializers.ImageField):
         if isinstance(data, str) and data.startswith('data:image'):
             form, imgstr = data.split(';base64,')
             ext = form.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='image.' + ext)
+            data = ContentFile(
+                base64.b64decode(imgstr), name='image.' + ext
+            )
         return super().to_internal_value(data)
 
 
@@ -117,10 +119,14 @@ class UsersSerializer(serializers.ModelSerializer):
             return False
         if self.context.get('subscriber'):
             follower = self.context['subscriber']
-            return Follow.objects.filter(user_id=user, follower_id=follower).exists()
+            return Follow.objects.filter(
+                user_id=user, follower_id=follower
+            ).exists()
         if self.context.get('request') is not None:
             follower = self.context['request'].user.pk
-        return Follow.objects.filter(user_id=user, follower_id=follower).exists()
+        return Follow.objects.filter(
+            user_id=user, follower_id=follower
+        ).exists()
 
 
 class RecipeForSubcriber(serializers.ModelSerializer):
@@ -134,15 +140,9 @@ class RecipeForSubcriber(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-
-
-
-
-
 class SubscribeSerializer(UsersSerializer):
     recipes = RecipeForSubcriber(many=True, read_only=True)
     recipes_count = serializers.SerializerMethodField()
-
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -161,8 +161,6 @@ class SubscribeSerializer(UsersSerializer):
             'avatar',
         )
 
-
-
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         rule = 'post' in self.context.keys()
@@ -173,7 +171,7 @@ class SubscribeSerializer(UsersSerializer):
             representation['recipes'] = representation['recipes'][:cnt_recipes]
             return representation
         recipe_limit = list(self.context.get('request').query_params.items())
-        if recipe_limit and recipe_limit[0][0]=='recipes_limit':
+        if recipe_limit and recipe_limit[0][0] == 'recipes_limit':
             cnt_recipes = int(recipe_limit[0][1])
             representation['recipes'] = representation['recipes'][:cnt_recipes]
             return representation

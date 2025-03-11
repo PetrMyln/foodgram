@@ -1,6 +1,6 @@
 from django.urls import include, path
-from rest_framework import routers
 from rest_framework.routers import DefaultRouter
+
 from recipes.views import (
     TagsView,
     GetLinkView,
@@ -15,12 +15,7 @@ from recipes.views import (
 router = DefaultRouter()
 router.register('tags', TagsView, basename='tags')
 router.register('ingredients', IngredientsView, basename='recipes')
-router.register('recipes', RecipesView,  basename='ingredients')
-
-
-
-
-
+router.register('recipes', RecipesView, basename='ingredients')
 
 recipes_patterns = [
     path('download_shopping_cart/',
@@ -37,17 +32,10 @@ recipes_patterns = [
         name='get-short-link'
     ),
 
-
 ]
 
 urlpatterns = [
-
-    path('<str:link>', RedirectView.as_view(), name='redirect'),
-
-    #path('ingredients/', include(ingredients_patterns)),
+    #path('<str:link>', RedirectView.as_view(), name='redirect'),
     path('recipes/', include(recipes_patterns)),
     path('', include(router.urls)),
-
-    #path('',IndexListView.as_view(), name='index'),
-
 ]

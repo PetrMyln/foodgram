@@ -1,15 +1,7 @@
-import base64
-
-from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.contrib.auth.hashers import make_password, check_password
-from django.core.files.base import ContentFile
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework import status
-from rest_framework.response import Response
 
-from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
-from foodgram_backend.validators import validate_username, ValidationError
+
+from foodgram_backend.validators import ValidationError
 from recipes.models import (
     Ingredient,
     Tag, Recipes,
@@ -24,6 +16,7 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
+
 
 class ShoppingSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=False, allow_null=True)
@@ -52,6 +45,7 @@ class IngredientSerializer(serializers.ModelSerializer):
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
 
+
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
@@ -61,9 +55,6 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipesIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
-
-
-
 
 
 class RecipesSerializer(serializers.ModelSerializer):
@@ -89,33 +80,41 @@ class RecipesSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         ]
+
     def get_is_favorited(self, obj):
         user = self.context['request'].user.pk
         recipe = obj.pk
-        return FavoriteRecipe.objects.filter(user_id=user, recipe=recipe).exists()
+        return FavoriteRecipe.objects.filter(
+            user_id=user, recipe=recipe
+        ).exists()
 
     def get_is_in_shopping_cart(self, obj):
-
         user = self.context['request'].user.pk
         recipe = obj.pk
-        return ShoppingCart.objects.filter(user_id=user, recipe=recipe).exists()
-
+        return ShoppingCart.objects.filter(
+            user_id=user, recipe=recipe
+        ).exists()
 
 
 class PostRecipeIngredientSerializer(RecipeIngredientSerializer):
-    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all()
+    )
 
     class Meta:
         model = RecipesIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
-
-
-
 class RecipesPostSerializer(serializers.ModelSerializer):
     FIELDS = [
-        'tags', 'author', 'ingredients', 'image', 'name', 'text', 'cooking_time'
+        'tags',
+        'author',
+        'ingredients',
+        'image',
+        'name',
+        'text',
+        'cooking_time'
     ]
     CHECK_FILED_TAGS = 'tags'
 
@@ -145,7 +144,9 @@ class RecipesPostSerializer(serializers.ModelSerializer):
                     message='Значение должно быть больше нуля',
                     code=400,
                 )
-            rule_for_ingredient = Ingredient.objects.filter(id=c['id'].pk).exists()
+            rule_for_ingredient = Ingredient.objects.filter(
+                id=c['id'].pk
+            ).exists()
             if not rule_for_ingredient:
                 raise ValidationError(
                     message=f'Не существует ингредиент {c["id"]}',
@@ -174,7 +175,9 @@ class RecipesPostSerializer(serializers.ModelSerializer):
 
     def check_post_method(self, attrs):
         not_all_fields = len(self.FIELDS) != len(attrs.keys())
-        empty_fields = all([bool(attrs['ingredients']), bool(attrs['tags'])])
+        empty_fields = all(
+            [bool(attrs['ingredients']), bool(attrs['tags'])]
+        )
         if not_all_fields:
             raise ValidationError(
                 message='Поле не должно быть пустым',
@@ -191,12 +194,16 @@ class RecipesPostSerializer(serializers.ModelSerializer):
     def check_patch_method(self, attrs):
         rule_empty_field_ingredient = 'ingredients' in attrs
         rule_empty_field_tags = 'tags' in attrs
-        if not all([rule_empty_field_ingredient, rule_empty_field_tags]):
+        if not all(
+                [rule_empty_field_ingredient, rule_empty_field_tags]
+        ):
             raise ValidationError(
                 message=f'Пустые поля ингредиент или таги',
                 code=400,
             )
-        empty_filds = all([bool(attrs['ingredients']), bool(attrs['tags'])])
+        empty_filds = all(
+            [bool(attrs['ingredients']), bool(attrs['tags'])]
+        )
         if not empty_filds:
             raise ValidationError(
                 message=f'Пустые поля ингредиент или таги',
@@ -210,22 +217,21 @@ class RecipesPostSerializer(serializers.ModelSerializer):
             return self.check_post_method(attrs)
         return self.check_patch_method(attrs)
 
-
     def to_representation(self, instance):
         return RecipesSerializer(
             instance=instance,
             context={'request': self.context.get('request')}
         ).data
 
-
     def add_tags_ingredients(self, ingredients, tags, model):
         recipeingredients_data = []
         for ingredient in ingredients:
-            recipeingredients_data.append(RecipesIngredient(
+            recipeingredients_data.append(
+                RecipesIngredient(
                 recipe=model,
                 ingredient=ingredient['id'],
-                amount=ingredient['amount']
-            ))
+                amount=ingredient['amount'])
+            )
         RecipesIngredient.objects.bulk_create(recipeingredients_data)
 
         recipetags_data = []
@@ -233,14 +239,12 @@ class RecipesPostSerializer(serializers.ModelSerializer):
             recipetags_data.append(RecipeTag(recipe=model, tag=tag))
         RecipeTag.objects.bulk_create(recipetags_data)
 
-
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = super().create(validated_data)
         self.add_tags_ingredients(ingredients, tags, recipe)
         return recipe
-
 
     def update(self, instance, validated_data):
         ingredients = validated_data.pop('ingredients')

@@ -10,9 +10,11 @@ class CustomPagination(PageNumberPagination):
             cont_on_page = int(obj_cont[0][1])
             self.page.paginator.count = cont_on_page
             data = data[:cont_on_page]
-        return Response({
-            'count': self.page.paginator.count,
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'results': data
-        })
+        return Response(
+            {
+                'count': self.page.paginator.count,
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link(),
+                'results': data
+            }
+        )

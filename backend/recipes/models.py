@@ -4,7 +4,10 @@ from django.contrib.auth import get_user_model
 
 from foodgram_backend.constant import (
     LENGTH_DISCRIPTION,
-    PATH_TO_IMAGES, LENGTH_TAG, LENGTH_ING_NAME, LENGTH_ING_MU
+    PATH_TO_IMAGES,
+    LENGTH_TAG,
+    LENGTH_ING_NAME,
+    LENGTH_ING_MU,
 )
 
 User = get_user_model()
@@ -104,7 +107,6 @@ class Recipes(NameModel):
         through='RecipesIngredient',
         related_name='recipes',
 
-
     )
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления',
@@ -137,7 +139,6 @@ class RecipesIngredient(models.Model):
         blank=False,
     )
 
-
     recipe = models.ForeignKey(
         Recipes,
         on_delete=models.CASCADE,
@@ -150,10 +151,8 @@ class RecipesIngredient(models.Model):
         default=1
     )
 
-
     def __str__(self):
         return f'{self.recipe} - {self.ingredient}'
-
 
     class Meta:
         verbose_name = 'Рецепт и игридиент'
@@ -166,10 +165,7 @@ class RecipeTag(models.Model):
         related_name='tag_recipes',
         null=True,
     )
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE,null=True)
-
-   # class Meta:
- #       unique_together = ('recipe', 'tag')
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = 'Рецепт и тег'
@@ -180,7 +176,7 @@ class RecipeTag(models.Model):
 
 
 class ShoppingCart(NameModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE,)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, )
     recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE)
     image = models.ImageField(
         upload_to=PATH_TO_IMAGES,
@@ -191,7 +187,7 @@ class ShoppingCart(NameModel):
     class Meta:
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
-        default_related_name ='shopping_cart'
+        default_related_name = 'shopping_cart'
 
 
 class FavoriteRecipe(NameModel):
@@ -207,6 +203,7 @@ class FavoriteRecipe(NameModel):
         verbose_name = 'Избранный'
         verbose_name_plural = 'Избранные рецепты'
         default_related_name = 'favorite_rec'
+
 
 class ShortLink(models.Model):
     recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE)

@@ -1,24 +1,16 @@
-from django.conf import settings
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from djoser.views import TokenCreateView, TokenDestroyView
 from rest_framework import filters, permissions, status, viewsets
-from rest_framework.decorators import action
 from rest_framework import generics
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
-
 from foodgram_backend.permissions import AuthorOrModeratorOrReadOnly
-
 from users.models import User, Follow
-
 from users.serializers import (
-    UsersSerializer, SubscribeSerializer,
+    UsersSerializer,
+    SubscribeSerializer,
 )
 from users.paginators import CustomPagination
 
@@ -36,7 +28,10 @@ class MyView(APIView):
         if user.is_authenticated:
             serializer = UsersSerializer(user)
             return Response(serializer.data)
-        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"detail": "Not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 
 class MyAvatarView(generics.UpdateAPIView):
@@ -48,7 +43,11 @@ class MyAvatarView(generics.UpdateAPIView):
             raise ValidationError(
                 {f'avatar': ["Обязательное поле."]})
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+            partial=True
+        )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response({'avatar': serializer.data['avatar']})
@@ -56,13 +55,18 @@ class MyAvatarView(generics.UpdateAPIView):
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.avatar = None
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+            partial=True
+        )
         try:
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
         except ValidationError as exc:
             exc.detail.update({
-                'Erore': 'Пожалуйста, загрузите корректный файл изображения.'
+                'Erore': 'Пожалуйста, загрузите '
+                         'корректный файл изображения.'
             })
             raise exc
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -80,7 +84,9 @@ class SubscriptionListView(generics.ListAPIView):
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        return User.objects.filter(following__follower_id=self.request.user.pk)
+        return User.objects.filter(
+            following__follower_id=self.request.user.pk
+        )
 
 
 class SubscribeView(APIView):
@@ -99,13 +105,21 @@ class SubscribeView(APIView):
                 {'Ошибка': 'Подписываться на самого себя запрещено.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        _, created = Follow.objects.get_or_create(follower=subscriber, user=user)
+        _, created = Follow.objects.get_or_create(
+            follower=subscriber, user=user
+        )
         if created:
             serializer = SubscribeSerializer(
                 User.objects.get(username=user),
-                context={'subscriber': subscriber.pk, 'post': query_params_value}
+                context={
+                    'subscriber': subscriber.pk,
+                    'post': query_params_value
+                }
             )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
         return Response(
             {'Ошибка': 'Выуже подписанны на этого пользователя.'},
             status=status.HTTP_400_BAD_REQUEST

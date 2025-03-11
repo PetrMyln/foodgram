@@ -12,8 +12,9 @@ from recipes.models import (
 
 )
 
+
 class ShortLinkAdmin(admin.ModelAdmin):
-    list_display = ('recipe', 'short_link','original_url')
+    list_display = ('recipe', 'short_link', 'original_url')
     search_fields = ('recipe',)
 
 
@@ -33,7 +34,7 @@ class RecipesAdmin(admin.ModelAdmin):
         'author',
         'favorites_recipe_count',
     )
-    search_fields = ('name', 'author__username',"author__first_name")
+    search_fields = ('name', 'author__username', "author__first_name")
     list_filter = ('tags',)
     ordering = ('-pub_date',)
 
@@ -66,8 +67,6 @@ class RecipeTagAdmin(admin.ModelAdmin):
 class ShoppingCartAdmin(admin.ModelAdmin):
     list_display = ('user', 'recipe', 'cooking_time', 'image')
     search_fields = ('user', 'recipe')
-
-
 
 
 admin.site.register(ShortLink, ShortLinkAdmin)

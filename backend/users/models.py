@@ -1,8 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
-from rest_framework.authtoken.models import  Token
-from django.utils.translation import gettext_lazy as _
 
 from foodgram_backend.constant import (
     LENGTH_ROLE,
@@ -11,8 +9,6 @@ from foodgram_backend.constant import (
     LENGTH_USERNAME,
     PATH_TO_AVATAR,
 )
-
-
 
 
 class User(AbstractUser):
@@ -59,10 +55,16 @@ class User(AbstractUser):
         return self.is_superuser or self.role == self.Role.ADMIN.value
 
 
-
 class Follow(models.Model):
-    user = models.ForeignKey(User, related_name='following', on_delete=models.CASCADE)
-    follower = models.ForeignKey(User, related_name='followers', on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, related_name='following',
+        on_delete=models.CASCADE
+    )
+    follower = models.ForeignKey(
+        User,
+        related_name='followers',
+        on_delete=models.CASCADE
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
