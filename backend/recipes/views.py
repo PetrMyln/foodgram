@@ -129,10 +129,16 @@ class GetLinkView(APIView):
 class RedirectView(APIView):
     permission_classes = [permissions.AllowAny]
 
-    def get(self, request, short_code):
-        get_object_or_404(ShortLink, short_link=short_code)
-        link = ShortLink.objects.get(short_link=short_code)
-        return redirect(link.original_link)
+    def get(self, request, link):
+        #print(link)
+        full_url = request.build_absolute_uri()
+      #  print(full_url)
+       # print(ShortLink.objects.filter(short_link=full_url))
+        obj = get_object_or_404(ShortLink, short_link=full_url)
+        #print(obj)
+        link = ShortLink.objects.get(short_link=full_url)
+        #print(link.original_url)
+        return redirect(link.original_url)
 
 
 

@@ -36,7 +36,7 @@ recipes_patterns = [
         GetLinkView.as_view(),
         name='get-short-link'
     ),
-    path('s/<str:short_code>/', RedirectView.as_view(), name='redirect'),
+
 
 ]
 
@@ -45,6 +45,7 @@ urlpatterns = [
     #path('ingredients/', include(ingredients_patterns)),
     path('recipes/', include(recipes_patterns)),
     path('', include(router.urls)),
+
     #path('',IndexListView.as_view(), name='index'),
 
 ]
