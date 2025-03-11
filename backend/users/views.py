@@ -10,14 +10,11 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import AccessToken
-from django.contrib.auth import update_session_auth_hash
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.filters import SearchFilter
-from django.contrib.auth.hashers import make_password, check_password
-from rest_framework.authtoken.models import Token
+
 
 from foodgram_backend.permissions import AuthorOrModeratorOrReadOnly
+
 from users.models import User, Follow
 
 from users.serializers import (

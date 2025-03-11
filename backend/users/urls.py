@@ -1,7 +1,5 @@
 from django.urls import include, path
-from rest_framework import routers
-from django.urls import re_path
-from djoser import views
+
 
 from users.views import (
     MyAvatarView,
@@ -12,7 +10,6 @@ from users.views import (
 auth_patterns = [
     path('', include('djoser.urls.authtoken')),
 ]
-
 
 users_patterns = [
     path('me/avatar/', MyAvatarView.as_view(), name='avatar-detail'),

@@ -6,7 +6,7 @@ from rest_framework import filters, permissions, status
 
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
-
+from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -53,7 +53,6 @@ class RecipesView(viewsets.ModelViewSet):
     http_method_names = 'get', 'post', 'patch', 'delete'
     permission_classes = [AuthorOrReadOnly]
     serializer_class = RecipesSerializer, RecipesPostSerializer
-    queryset = Recipes.objects.all()
     pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('author', )
@@ -75,7 +74,8 @@ class RecipesView(viewsets.ModelViewSet):
             return recipes
         if  is_favorited and self.request.user.is_authenticated:
             recipes = Recipes.objects.prefetch_related(
-                'favorite_rec').filter(favorite_rec__user=self.request.user)
+                'favorite_rec').filter(
+                favorite_rec__user=self.request.user,tags__slug__in=tags)
             return recipes
         if tags:
             return queryset.filter(tags__slug__in=tags).distinct()
@@ -123,6 +123,10 @@ class GetLinkView(APIView):
 class ShoppingCartView(APIView):
     permission_classes = [IsAuthenticated]
 
+
+
+
+
     def post(self, request, pk):
         user = get_object_or_404(User, id=self.request.user.pk)
         recipe = get_object_or_404(Recipes, id=request.parser_context['kwargs']['pk'])
@@ -160,8 +164,6 @@ class FavoriteRecipeView(APIView):
     permission_classes = [AuthorOrReadOnly]
 
     def post(self, request, pk):
-        print(self.request.user.pk)
-        print(request.parser_context['kwargs']['pk'])
         user = get_object_or_404(User, id=self.request.user.pk)
         recipe = get_object_or_404(Recipes, id=request.parser_context['kwargs']['pk'])
         obj, created = FavoriteRecipe.objects.get_or_create(
@@ -192,7 +194,6 @@ class FavoriteRecipeView(APIView):
 
 
 
-from django.http import HttpResponse
 
 class DownloadShoppingCartView(APIView):
 
@@ -225,3 +226,36 @@ class DownloadShoppingCartView(APIView):
             response.write(f"{item}")
         return response
 
+
+
+class dFavoriteRecipeView(generics.ListCreateAPIView, generics.DestroyAPIView):
+    permission_classes = [AuthorOrReadOnly]
+    #serializer_class = RecipesSerializer, RecipesPostSerializer
+    pagination_class = CustomPagination
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = ('author', )
+    search_fields = ('tags', 'ingredients')
+
+    def dget_serializer_class(self):
+        if self.request.method in 'POST':
+            return RecipesPostSerializer
+        return RecipesSerializer
+
+
+
+    def get_queryset(self):
+        queryset = Recipes.objects.all()
+        tags = self.request.query_params.getlist('tags')
+        is_in_shopping_cart = self.request.query_params.get('is_in_shopping_cart')
+        is_favorited = self.request.query_params.get('is_favorited')
+        if is_in_shopping_cart and self.request.user.is_authenticated:
+            recipes = Recipes.objects.prefetch_related(
+                'shopping_cart').filter(shopping_cart__user=self.request.user)
+            return recipes
+        if is_favorited and self.request.user.is_authenticated:
+            recipes = Recipes.objects.prefetch_related(
+                'favorite_rec').filter(favorite_rec__user=self.request.user)
+            return recipes
+        if tags:
+            return queryset.filter(tags__slug__in=tags).distinct()
+        return queryset
