@@ -134,7 +134,7 @@ class RedirectView(APIView):
         full_url = request.build_absolute_uri()
         print(full_url)
        # print(ShortLink.objects.filter(short_link=full_url))
-        get_object_or_404(ShortLink, short_link=full_url)
+        obj=get_object_or_404(ShortLink, short_link=full_url)
         print(obj)
         link = ShortLink.objects.get(short_link=full_url)
         print(link.original_url)
