@@ -5,7 +5,7 @@ from users.views import (
     SubscriptionListView,
     SubscribeView,
 )
-from recipes.views import RedirectView
+
 
 auth_patterns = [
     path('', include('djoser.urls.authtoken')),

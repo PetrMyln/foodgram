@@ -2,7 +2,6 @@ from random import choice, randint
 from json import load
 
 from django.core.management.base import BaseCommand
-from django.core.files import File
 from django.contrib.auth.hashers import make_password
 
 from recipes.models import (
@@ -66,8 +65,6 @@ class Command(BaseCommand):
         try:
             value = 1
             value_rec = 1
-            with open('./data/emp.jpg', 'rb') as f:
-                img = File(f)
             for c in range(10):
                 user, _ = User.objects.get_or_create(
                     username=str(value) + users.get('username'),
@@ -78,7 +75,6 @@ class Command(BaseCommand):
 
                 )
                 value += 1
-
                 for x in range(6):
                     tgs_cnt = list(set([choice([1, 2, 3]) for _ in range(3)]))
                     obj, _ = Recipes.objects.get_or_create(
@@ -86,16 +82,17 @@ class Command(BaseCommand):
                         author=user,
                         text=str(value_rec) + ' TEST TEXT',
                         cooking_time=value,
-                        image='./data/emp.jpg'
                     )
                     recipeingredients_data = []
                     for ingredient in range(2):
                         recipeingredients_data.append(RecipesIngredient(
                             recipe=obj,
-                            ingredient=Ingredient.objects.get(pk=randint(1, 2000)),
+                            ingredient=Ingredient.objects.get(
+                                pk=randint(1, 2000)),
                             amount=value
                         ))
-                    RecipesIngredient.objects.bulk_create(recipeingredients_data)
+                    RecipesIngredient.objects.bulk_create(
+                        recipeingredients_data)
                     recipetags_data = []
                     tags = [(Tag.objects.get(pk=m)) for m in tgs_cnt]
                     for tag in tags:

@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response

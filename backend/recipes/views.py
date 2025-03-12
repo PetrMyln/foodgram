@@ -85,9 +85,10 @@ class RecipesView(viewsets.ModelViewSet):
         if is_favorited and self.request.user.is_authenticated:
             recipes = Recipes.objects.prefetch_related(
                 'favorite_rec').filter(
-                favorite_rec__user=self.request.user,
-                tags__slug__in=tags
-            ).distinct()
+                favorite_rec__user=self.request.user
+            )
+            if tags:
+                return recipes.filters(tags__slug__in=tags)
             return recipes
         if tags:
             return queryset.filter(tags__slug__in=tags).distinct()
@@ -122,13 +123,12 @@ class GetLinkView(APIView):
 
     def get(self, request, pk, format=None):
         full_url = request.build_absolute_uri()[:-10]
-        print(full_url.replace('/api', ''))
         recipe = Recipes.objects.get(
             pk=request.parser_context['kwargs'].get('pk')
         )
         obj_rec, created = ShortLink.objects.get_or_create(recipe=recipe)
         if not created:
-            # print(obj_rec.short_link)
+
             return Response({"short-link": obj_rec.short_link})
         characters = ascii_letters + digits
 
@@ -143,7 +143,6 @@ class GetLinkView(APIView):
             obj_rec.original_url = full_url.replace('/api', '')
             obj_rec.save()
             break
-        print(obj_rec.original_url)
         return Response({"short-link": obj_rec.short_link})
 
 
@@ -151,11 +150,7 @@ class RedirectView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, link):
-        full_url = request.build_absolute_uri()
-        print(full_url, link)
         link = ShortLink.objects.filter(short_link__endswith=link).first()
-        print(link)
-        print(link.original_url)
         return redirect(link.original_url, permanent=False)
 
 

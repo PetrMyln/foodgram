@@ -12,8 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
-DEBUG=True
-#DEBUG = os.getenv('FOR_DEBAG') == 'False'
+DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
@@ -72,9 +71,6 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
-
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -121,11 +117,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 
-
 STATIC_URL = '/static_backend/'
 STATIC_ROOT = BASE_DIR / 'collected_static'
-
-
 
 AUTH_USER_MODEL = "users.User"
 
@@ -182,4 +175,4 @@ DJOSER = {
                         'rest_framework.permissions.IsAuthenticated'],
     }
 }
-SITE_URL='https://food-gramtryam.zapto.org'
+SITE_URL = 'https://food-gramtryam.zapto.org'
