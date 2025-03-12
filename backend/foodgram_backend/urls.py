@@ -30,7 +30,6 @@ urlpatterns = [
         TemplateView.as_view(template_name='redoc.html'),
 
     ),
-    #path('<str:link>', RedirectView.as_view(), name='redirect'),
 ]
 
 if settings.DEBUG:

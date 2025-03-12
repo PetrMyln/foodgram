@@ -2,6 +2,7 @@ from random import choice, randint
 from json import load
 
 from django.core.management.base import BaseCommand
+from django.core.files import File
 from django.contrib.auth.hashers import make_password
 
 from recipes.models import (
@@ -65,13 +66,16 @@ class Command(BaseCommand):
         try:
             value = 1
             value_rec = 1
+            with open('./data/emp.jpg', 'rb') as f:
+                img = File(f)
             for c in range(10):
                 user, _ = User.objects.get_or_create(
                     username=str(value) + users.get('username'),
                     email=str(value) + users.get('email'),
                     first_name=str(value) + users.get('first_name'),
                     last_name=str(value) + users.get('last_name'),
-                    password=make_password(users.get('password'))
+                    password=make_password(users.get('password')),
+
                 )
                 value += 1
 
@@ -81,7 +85,8 @@ class Command(BaseCommand):
                         name=str(value_rec) + ' ТЕСТОВЫЙ рецепт',
                         author=user,
                         text=str(value_rec) + ' TEST TEXT',
-                        cooking_time=value
+                        cooking_time=value,
+                        image=img
                     )
                     recipeingredients_data = []
                     for ingredient in range(2):
