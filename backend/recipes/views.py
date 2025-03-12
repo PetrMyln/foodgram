@@ -32,13 +32,15 @@ from recipes.serializers import (
 )
 from users.models import User
 from users.permissions import AuthorOrReadOnly
+from recipes.filters import IngredientFilter
 
 
 class IngredientsView(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filterset_fields = ('name',)
+    #filterset_fields = ('name',)
+    filterset_class = IngredientFilter
     search_fields = ['^name']
     pagination_class = None
     permission_classes = (permissions.AllowAny,)
@@ -121,6 +123,7 @@ class GetLinkView(APIView):
 
     def get(self, request, pk, format=None):
         full_url = request.build_absolute_uri()[:-10]
+        print(full_url.replace('/api',''))
         recipe = Recipes.objects.get(
             pk=request.parser_context['kwargs'].get('pk')
         )
@@ -138,10 +141,10 @@ class GetLinkView(APIView):
             if ShortLink.objects.filter(short_link=url).exists():
                 continue
             obj_rec.short_link = url
-            obj_rec.original_url = full_url
+            obj_rec.original_url = full_url.replace('/api','')
             obj_rec.save()
             break
-
+        print(obj_rec.original_url)
         return Response({"short-link": obj_rec.short_link})
 
 
@@ -151,8 +154,10 @@ class RedirectView(APIView):
     def get(self, request, link):
 
         full_url = request.build_absolute_uri()
-        print(full_url)
-        link = ShortLink.objects.get(short_link=full_url)
+        print(full_url,link)
+        link = ShortLink.objects.filter(short_link__endswith=link).first()
+        print(link)
+        print(link.original_url)
         return redirect(link.original_url, permanent=False)
 
 
