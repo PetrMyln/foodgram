@@ -155,7 +155,7 @@ class RecipesPostSerializer(serializers.ModelSerializer):
                 check_list_for_ingredient.append(c['id'])
             else:
                 raise ValidationError(
-                    message=f'Вы указали два одинаковых ингредиента',
+                    message='Вы указали два одинаковых ингредиента',
                     code=400,
                 )
         return attrs
@@ -197,7 +197,7 @@ class RecipesPostSerializer(serializers.ModelSerializer):
                 [rule_empty_field_ingredient, rule_empty_field_tags]
         ):
             raise ValidationError(
-                message=f'Пустые поля ингредиент или таги',
+                message='Пустые поля ингредиент или таги',
                 code=400,
             )
         empty_filds = all(
@@ -205,7 +205,7 @@ class RecipesPostSerializer(serializers.ModelSerializer):
         )
         if not empty_filds:
             raise ValidationError(
-                message=f'Пустые поля ингредиент или таги',
+                message='Пустые поля ингредиент или таги',
                 code=400,
             )
         self.check_tags(attrs)

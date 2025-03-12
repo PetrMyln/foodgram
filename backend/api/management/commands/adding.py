@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
 
-        with open('./data/ingredients.json','r', encoding='utf-8') as file:
+        with open('./data/ingredients.json', 'r', encoding='utf-8') as file:
             rows = load(file)
             for k in rows:
                 try:

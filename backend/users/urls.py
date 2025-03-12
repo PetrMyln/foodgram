@@ -24,11 +24,7 @@ users_patterns = [
         name='subscribe'
     ),
 ]
-
-
-
 urlpatterns = [
-
     path('users/', include(users_patterns)),
     path('', include('djoser.urls')),
     path('auth/', include(auth_patterns)),

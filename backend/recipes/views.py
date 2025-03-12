@@ -3,7 +3,7 @@ from string import ascii_letters, digits
 
 from django.shortcuts import get_object_or_404, redirect
 
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from rest_framework import filters, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -128,7 +128,6 @@ class GetLinkView(APIView):
         )
         obj_rec, created = ShortLink.objects.get_or_create(recipe=recipe)
         if not created:
-
             return Response({"short-link": obj_rec.short_link})
         characters = ascii_letters + digits
 

@@ -69,16 +69,13 @@ class AuthSerializer(serializers.ModelSerializer):
         if rule_email is True and rule_username is True:
             raise serializers.ValidationError(
                 {'Ошибка':
-                     f'Проверьте {email} и '
-                     f'{username} уже используются!'})
+                    f'Проверьте {email} и {username} уже используются!'})
         if rule_email:
             raise serializers.ValidationError(
-                {'Ошибка': f'Проверьте '
-                           f'{email} уже используется!'})
+                {'Ошибка': f'Проверьте {email} уже используется!'})
         if rule_username:
             raise serializers.ValidationError(
-                {f'Ошибка': f'Проверьте '
-                            f'{username} уже используется!'})
+                {'Ошибка': f'Проверьте {username} уже используется!'})
         return data
 
     def create(self, validated_data):
@@ -112,8 +109,8 @@ class UsersSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         user = obj.pk
         rule = (
-                self.context.get('subscriber') is None
-                and self.context.get('request') is None
+            self.context.get('subscriber') is None
+            and self.context.get('request') is None
         )
         if rule:
             return False

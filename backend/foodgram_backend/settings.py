@@ -15,7 +15,7 @@ SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 # для ревью потом уберу
 DEBAG = True
 
-DEBUG = os.getenv('FOR_DEBAG') == 'False'
+#DEBUG = os.getenv('FOR_DEBAG') == 'False'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 

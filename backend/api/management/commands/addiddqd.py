@@ -101,5 +101,5 @@ class Command(BaseCommand):
                     value_rec += 1
             else:
                 print('FINI users, rec')
-        except:
-            pass
+        except Exception as e:
+            print(e)

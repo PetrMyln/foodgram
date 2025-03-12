@@ -41,7 +41,7 @@ class MyAvatarView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         if not request.data:
             raise ValidationError(
-                {f'avatar': ["Обязательное поле."]})
+                {'avatar': ["Обязательное поле."]})
         instance = self.get_object()
         serializer = self.get_serializer(
             instance,
