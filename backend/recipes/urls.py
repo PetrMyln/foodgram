@@ -9,7 +9,6 @@ from recipes.views import (
     RecipesView,
     IngredientsView,
     DownloadShoppingCartView,
-    RedirectView
 )
 
 router = DefaultRouter()
@@ -31,7 +30,6 @@ recipes_patterns = [
         GetLinkView.as_view(),
         name='get-short-link'
     ),
-
 ]
 
 urlpatterns = [

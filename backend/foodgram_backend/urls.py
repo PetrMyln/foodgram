@@ -5,7 +5,6 @@ from django.views.generic import TemplateView
 from django.contrib import admin
 
 from recipes.views import (
-
     RedirectView,
 )
 
@@ -15,11 +14,8 @@ api_patterns = [
 ]
 
 short_link = [
-
     path('<str:link>', RedirectView.as_view(), name='redirect')
-
 ]
-
 
 urlpatterns = [
     path('s/', include(short_link)),

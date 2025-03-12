@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-
 from foodgram_backend.validators import ValidationError
 from recipes.models import (
     Ingredient,
@@ -228,9 +227,9 @@ class RecipesPostSerializer(serializers.ModelSerializer):
         for ingredient in ingredients:
             recipeingredients_data.append(
                 RecipesIngredient(
-                recipe=model,
-                ingredient=ingredient['id'],
-                amount=ingredient['amount'])
+                    recipe=model,
+                    ingredient=ingredient['id'],
+                    amount=ingredient['amount'])
             )
         RecipesIngredient.objects.bulk_create(recipeingredients_data)
 

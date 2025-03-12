@@ -86,7 +86,7 @@ class Command(BaseCommand):
                         author=user,
                         text=str(value_rec) + ' TEST TEXT',
                         cooking_time=value,
-                        image=img
+                        image='./data/emp.jpg'
                     )
                     recipeingredients_data = []
                     for ingredient in range(2):

@@ -8,8 +8,7 @@ from recipes.models import (
     RecipesIngredient,
     ShoppingCart,
     RecipeTag,
-    ShortLink
-
+    ShortLink,
 )
 
 

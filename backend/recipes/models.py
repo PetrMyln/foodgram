@@ -9,25 +9,9 @@ from foodgram_backend.constant import (
     LENGTH_ING_NAME,
     LENGTH_ING_MU,
 )
+from recipes.core import NameModel
 
 User = get_user_model()
-
-
-class NameModel(models.Model):
-    name = models.CharField(
-        max_length=LENGTH_DISCRIPTION,
-        verbose_name='Название',
-        blank=False,
-        db_index=True,
-        unique=False,
-    )
-
-    class Meta:
-        abstract = True
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
 
 
 class Tag(models.Model):
