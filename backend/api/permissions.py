@@ -32,9 +32,6 @@ class AuthorOrReadOnly(permissions.BasePermission):
                 or obj.author == request.user)
 
 
-
-
-
 class AuthorOrModeratorOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return (

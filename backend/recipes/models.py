@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
 from foodgram_backend.constant import (
     LENGTH_DISCRIPTION,
@@ -9,7 +10,7 @@ from foodgram_backend.constant import (
     LENGTH_ING_NAME,
     LENGTH_ING_MU,
 )
-from recipes.core import NameModel
+from recipes.core import NameModel, ShopFavorite
 
 User = get_user_model()
 
@@ -37,7 +38,6 @@ class Tag(models.Model):
 
 
 class Ingredient(NameModel):
-    DEFAULT_IMAGE = 'default/default.jpg'
     name = models.CharField(
         max_length=LENGTH_ING_NAME,
         verbose_name='Название',
@@ -51,9 +51,19 @@ class Ingredient(NameModel):
     )
 
     class Meta:
+        unique_together = (('name', 'measurement_unit'),)
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
-        ordering = ['id']
+        ordering = ['name']
+
+    def clean(self):
+        rule_same_ing = Ingredient.objects.filter(
+            name=self.name,
+            measurement_unit=self.measurement_unit
+        )
+        if rule_same_ing:
+            raise ValidationError("Нельзя подписаться на самого себя.")
+        super().clean()
 
 
 class Recipes(NameModel):
@@ -76,7 +86,6 @@ class Recipes(NameModel):
         Tag,
         verbose_name='Тег / Теги',
         related_name='recipes',
-        through='RecipeTag'
     )
 
     image = models.ImageField(
@@ -135,54 +144,22 @@ class RecipesIngredient(models.Model):
         default=1
     )
 
-    def __str__(self):
-        return f'{self.recipe} - {self.ingredient}'
-
     class Meta:
         verbose_name = 'Рецепт и игридиент'
         verbose_name_plural = 'Рецепты и игридиенты'
 
-
-class RecipeTag(models.Model):
-    recipe = models.ForeignKey(
-        Recipes, on_delete=models.CASCADE,
-        related_name='tag_recipes',
-        null=True,
-    )
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, null=True)
-
-    class Meta:
-        verbose_name = 'Рецепт и тег'
-        verbose_name_plural = 'Рецепты и теги'
-
     def __str__(self):
-        return f"{self.recipe.name} - {self.tag.name}"
+        return f'{self.recipe} - {self.ingredient}'
 
 
-class ShoppingCart(NameModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, )
-    recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE)
-    image = models.ImageField(
-        upload_to=PATH_TO_IMAGES,
-        verbose_name='Фото',
-    )
-    cooking_time = models.IntegerField(null=True)
-
+class ShoppingCart(ShopFavorite):
     class Meta:
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзина'
         default_related_name = 'shopping_cart'
 
 
-class FavoriteRecipe(NameModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipes, on_delete=models.CASCADE, unique=False)
-    image = models.ImageField(
-        upload_to=PATH_TO_IMAGES,
-        verbose_name='Фото',
-    )
-    cooking_time = models.IntegerField(null=True)
-
+class FavoriteRecipe(ShopFavorite):
     class Meta:
         verbose_name = 'Избранный'
         verbose_name_plural = 'Избранные рецепты'
@@ -195,9 +172,9 @@ class ShortLink(models.Model):
     original_url = models.URLField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"Короткая сылка рецепта {self.recipe.pk}"
-
     class Meta:
         verbose_name = 'Коротная ссылка'
         verbose_name_plural = 'Короткие ссылки'
+
+    def __str__(self):
+        return f"Короткая сылка рецепта {self.recipe.pk}"

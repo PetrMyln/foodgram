@@ -43,9 +43,7 @@ class User(AbstractUser):
         default=''
     )
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username','first_name', 'last_name']
-
-
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
         ordering = ['username']
@@ -80,7 +78,6 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower.username} подписан {self.user.username}"
-
 
     def clean(self):
         if self.user == self.follower:

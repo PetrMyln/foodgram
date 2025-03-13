@@ -12,7 +12,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
-
 DEBUG = os.getenv('FOR_DEBAG') == 'False'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
@@ -51,7 +50,6 @@ AUTHENTICATION_BACKENDS = [
     'users.backends.EmailBackend',
 ]
 
-
 TEMPLATES_DIR = BASE_DIR / 'templates'
 
 TEMPLATES = [
@@ -75,15 +73,6 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-
-
-аDATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 
 DATABASES = {

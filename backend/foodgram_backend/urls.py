@@ -8,8 +8,6 @@ from api.views import (
     RedirectView,
 )
 
-
-
 short_link = [
     path('<str:link>', RedirectView.as_view(), name='redirect')
 ]

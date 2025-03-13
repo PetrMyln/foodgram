@@ -9,7 +9,6 @@ from recipes.models import (
     Tag,
     Recipes,
     RecipesIngredient,
-    RecipeTag
 )
 from users.models import User
 
@@ -93,11 +92,7 @@ class Command(BaseCommand):
                         ))
                     RecipesIngredient.objects.bulk_create(
                         recipeingredients_data)
-                    recipetags_data = []
-                    tags = [(Tag.objects.get(pk=m)) for m in tgs_cnt]
-                    for tag in tags:
-                        recipetags_data.append(RecipeTag(recipe=obj, tag=tag))
-                    RecipeTag.objects.bulk_create(recipetags_data)
+                    obj.tags.set(tgs_cnt)
                     value_rec += 1
             else:
                 print('FINI users, rec')

@@ -6,7 +6,6 @@ from recipes.models import (
     Tag,
     Recipes,
     RecipesIngredient,
-    RecipeTag,
     ShoppingCart,
     FavoriteRecipe
 )
@@ -20,6 +19,7 @@ from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
 from foodgram_backend.validators import validate_username
 
 from users.models import User, Follow
+
 
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
@@ -289,11 +289,7 @@ class RecipesPostSerializer(serializers.ModelSerializer):
                     amount=ingredient['amount'])
             )
         RecipesIngredient.objects.bulk_create(recipeingredients_data)
-
-        recipetags_data = []
-        for tag in tags:
-            recipetags_data.append(RecipeTag(recipe=model, tag=tag))
-        RecipeTag.objects.bulk_create(recipetags_data)
+        model.tags.set(tags)
 
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
