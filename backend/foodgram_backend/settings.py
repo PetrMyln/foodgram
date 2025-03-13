@@ -72,6 +72,15 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
+
+DgATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -163,13 +172,13 @@ SENDER_EMAIL = 'food-gramtryam.zapto.org'
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'SERIALIZERS': {
-        'user': 'users.serializers.UsersSerializer',
-        'user_create': 'users.serializers.AuthSerializer',
-        'current_user': 'users.serializers.UsersSerializer',
+        'user': 'api.serializers.UsersSerializer',
+        'user_create': 'api.serializers.AuthSerializer',
+        'current_user': 'api.serializers.UsersSerializer',
     },
     'PERMISSIONS': {
         'user': [
-            'users.permissions.UserOrReadOnly',
+            'api.permissions.UserOrReadOnly',
         ],
         'user_list': ['rest_framework.permissions.AllowAny'],
         'user_delete': ['rest_framework.permissions.IsAdminUser',
