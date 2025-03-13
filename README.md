@@ -83,6 +83,9 @@ docker-compose exec "Название контейнера" python manage.py col
 
 ```
 
+#  ПЕРЕД ПОСЛЕДНЕЙ ПРАВКОЙ УДАЛЮ и заменю супераюзера
+
+```
 
 в 6 рецепте https://food-gramtryam.zapto.org/recipes/6
 описание .env
@@ -97,9 +100,6 @@ python manage.py adding
 python manage.py addiddqd
 
 для админки
-login petr 
+login 1@1.ru 
 password - 1
-
-пользователи
-логинемся по почте
-password - 1
+```
