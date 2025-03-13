@@ -40,8 +40,12 @@ class User(AbstractUser):
         upload_to=PATH_TO_AVATAR,
         verbose_name='Аватар',
         null=True,
-        default=None
+        default=''
     )
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username','first_name', 'last_name']
+
+
 
     class Meta:
         ordering = ['username']

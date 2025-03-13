@@ -44,8 +44,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+'your_app.backends.EmailBackend'
 ROOT_URLCONF = 'foodgram_backend.urls'
+
+AUTHENTICATION_BACKENDS = [
+    'users.backends.EmailBackend',
+]
+
 
 TEMPLATES_DIR = BASE_DIR / 'templates'
 
@@ -73,7 +78,7 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
 
 
-DAfTABASES = {
+аDATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',

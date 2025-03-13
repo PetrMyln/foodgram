@@ -74,13 +74,13 @@ class UserViewSet(DjoserUserViewSet):
             serializer = self.make_serializer(instance, request.data)
             self.check_before_update_delete(serializer)
             return Response({'avatar': serializer.data['avatar']})
-        instance.avatar = None
+        instance.avatar = ''
         try:
             serializer = self.make_serializer(instance, request.data)
             self.check_before_update_delete(serializer)
         except ValidationError as exc:
             exc.detail.update({
-                'Erore': 'Пожалуйста, загрузите '
+                'Ошибка': 'Пожалуйста, загрузите '
                          'корректный файл изображения.'
             })
             raise exc
