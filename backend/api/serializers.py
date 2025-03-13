@@ -46,7 +46,6 @@ class UsersSerializer(serializers.ModelSerializer):
             'last_name',
             'is_subscribed',
             'avatar',
-
         )
 
     def get_is_subscribed(self, obj):

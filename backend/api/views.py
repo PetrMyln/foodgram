@@ -2,16 +2,18 @@ from random import choice
 from string import ascii_letters, digits
 
 from django.shortcuts import get_object_or_404, redirect
-from rest_framework import generics
-from rest_framework.exceptions import ValidationError
+from djoser.views import UserViewSet as DjoserUserViewSet
 from django.http import HttpResponse
-from rest_framework import filters, permissions, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
+from rest_framework import filters, permissions, status, routers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework import viewsets
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics
+from rest_framework.exceptions import ValidationError
 
 from recipes.models import (
     Ingredient,
@@ -35,7 +37,6 @@ from api.serializers import (
 from api.permissions import AuthorOrReadOnly
 from api.filters import IngredientFilter
 
-
 from api.permissions import AuthorOrModeratorOrReadOnly
 from users.models import User, Follow
 from api.serializers import (
@@ -44,55 +45,39 @@ from api.serializers import (
 )
 
 
+class UserViewSet(DjoserUserViewSet):
+    pagination_class = CustomPagination
 
-class ProfileView(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (permissions.AllowAny,)
-    queryset = User.objects.all()
-    serializer_class = UsersSerializer
-    lookup_field = 'id'
-
-
-class MyView(APIView):
-    def get(self, request):
-        user = request.user
-        if user.is_authenticated:
-            serializer = UsersSerializer(user)
-            return Response(serializer.data)
-        return Response(
-            {"detail": "Not found."},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-
-class MyAvatarView(generics.UpdateAPIView):
-    permission_classes = [AuthorOrModeratorOrReadOnly]
-    serializer_class = UsersSerializer
-
-    def put(self, request, *args, **kwargs):
-        if not request.data:
-            raise ValidationError(
-                {'avatar': ["Обязательное поле."]})
-        instance = self.get_object()
-        serializer = self.get_serializer(
+    def make_serializer(self, instance, data, partial=True):
+        return self.get_serializer(
             instance,
-            data=request.data,
-            partial=True
+            data=data,
+            partial=partial
         )
+
+    def check_before_update_delete(self, serializer):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response({'avatar': serializer.data['avatar']})
 
-    def delete(self, request, *args, **kwargs):
-        instance = self.get_object()
+    @action(
+        detail=False,
+        methods=['put', 'delete'],
+        url_path='me/avatar',
+        permission_classes=[AuthorOrModeratorOrReadOnly]
+    )
+    def avatar(self, request, *args, **kwargs):
+        instance = self.request.user
+        if request.method == 'PUT':
+            if not request.data:
+                raise ValidationError(
+                    {'avatar': ["Обязательное поле."]})
+            serializer = self.make_serializer(instance, request.data)
+            self.check_before_update_delete(serializer)
+            return Response({'avatar': serializer.data['avatar']})
         instance.avatar = None
-        serializer = self.get_serializer(
-            instance,
-            data=request.data,
-            partial=True
-        )
         try:
-            serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
+            serializer = self.make_serializer(instance, request.data)
+            self.check_before_update_delete(serializer)
         except ValidationError as exc:
             exc.detail.update({
                 'Erore': 'Пожалуйста, загрузите '
@@ -101,40 +86,51 @@ class MyAvatarView(generics.UpdateAPIView):
             raise exc
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def get_object(self):
-        return User.objects.get(pk=self.request.user.pk)
+    @action(
+        detail=False,
+        url_path='subscriptions',
+        permission_classes=[IsAuthenticated],
+        serializer_class=SubscribeSerializer
+    )
+    def subscriptions(self, request, *args, **kwargs):
+        queryset = User.objects.filter(
+            following__follower_id=self.request.user.pk)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
-    def perform_update(self, serializer):
-        serializer.save()
-
-
-class SubscriptionListView(generics.ListAPIView):
-    serializer_class = SubscribeSerializer
-    permission_classes = [IsAuthenticated]
-    pagination_class = CustomPagination
-
-    def get_queryset(self):
-        return User.objects.filter(
-            following__follower_id=self.request.user.pk
-        )
-
-
-class SubscribeView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, id):
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        url_path='subscribe',
+        permission_classes=[IsAuthenticated],
+        serializer_class=SubscribeSerializer
+    )
+    def subscribe(self, request, id, **kwargs):
+        user = get_object_or_404(User, id=id)
+        subscriber = request.user
+        if user == subscriber:
+            return Response(
+                {
+                    'Ошибка': 'Подписка и отписка на самого себя запрещена.'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if request.method == 'DELETE':
+            rule_is_sub_exists = Follow.objects.filter(
+                follower_id=request.user.pk, user_id=id)
+            if not rule_is_sub_exists.exists():
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            rule_is_sub_exists.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         check_value_query_params = list(request.query_params.items())
         if check_value_query_params:
             query_params_value = list(request.query_params.items())[0]
         else:
             query_params_value = None
-        user = get_object_or_404(User, id=id)
-        subscriber = request.user
-        if user == subscriber:
-            return Response(
-                {'Ошибка': 'Подписываться на самого себя запрещено.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         _, created = Follow.objects.get_or_create(
             follower=subscriber, user=user
         )
@@ -154,15 +150,6 @@ class SubscribeView(APIView):
             {'Ошибка': 'Выуже подписанны на этого пользователя.'},
             status=status.HTTP_400_BAD_REQUEST
         )
-
-    def delete(self, request, id):
-        get_object_or_404(User, pk=id)
-        rule_is_sub_exists = Follow.objects.filter(
-            follower_id=request.user.pk, user_id=id)
-        if not rule_is_sub_exists.exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        rule_is_sub_exists.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class IngredientsView(viewsets.ReadOnlyModelViewSet):

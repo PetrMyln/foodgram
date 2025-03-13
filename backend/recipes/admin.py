@@ -37,17 +37,9 @@ class RecipesAdmin(admin.ModelAdmin):
     list_filter = ('tags',)
     ordering = ('-pub_date',)
 
+    @admin.display(description='Количество в избранном')
     def favorites_recipe_count(self, obj):
         return FavoriteRecipe.objects.filter(recipe=obj).count()
-
-    #
-    favorites_recipe_count.short_description = "Количество в избранном"
-
-    @admin.display(description='Ингредиентыfff')
-    def get_ing_list(self, obj):
-        sqn_of_genre = Ingredient.objects.all()
-        genre_sqn = [curent for curent in sqn_of_genre]
-        return genre_sqn if genre_sqn else 'Добавте жанры к произведению'
 
 
 class FavoriteAdmin(admin.ModelAdmin):

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from foodgram_backend.constant import (
@@ -75,3 +76,9 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower.username} подписан {self.user.username}"
+
+
+    def clean(self):
+        if self.user == self.follower:
+            raise ValidationError("Нельзя подписаться на самого себя.")
+        super().clean()
