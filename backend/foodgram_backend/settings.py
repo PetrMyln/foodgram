@@ -12,9 +12,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
+#DEBAG = True
+
 DEBUG = os.getenv('FOR_DEBAG') == 'False'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', "localhost").split(',')
 
 # Application definition
 
@@ -73,6 +75,15 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+
+
+DATfABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 
 DATABASES = {

@@ -31,7 +31,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
-        ordering = ['id']
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -55,15 +55,6 @@ class Ingredient(NameModel):
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
         ordering = ['name']
-
-    def clean(self):
-        rule_same_ing = Ingredient.objects.filter(
-            name=self.name,
-            measurement_unit=self.measurement_unit
-        )
-        if rule_same_ing:
-            raise ValidationError("Нельзя подписаться на самого себя.")
-        super().clean()
 
 
 class Recipes(NameModel):
@@ -145,6 +136,7 @@ class RecipesIngredient(models.Model):
     )
 
     class Meta:
+        unique_together = (('recipe', 'ingredient'),)
         verbose_name = 'Рецепт и игридиент'
         verbose_name_plural = 'Рецепты и игридиенты'
 

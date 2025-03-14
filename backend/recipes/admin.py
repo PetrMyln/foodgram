@@ -42,7 +42,7 @@ class RecipesAdmin(admin.ModelAdmin):
 
 
 class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ('user', 'recipe', 'image', 'cooking_time')
+    list_display = ('user', 'recipe',)
 
 
 class RecipesIngredientAdmin(admin.ModelAdmin):
@@ -50,7 +50,7 @@ class RecipesIngredientAdmin(admin.ModelAdmin):
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ('user', 'recipe', 'cooking_time', 'image')
+    list_display = ('user', 'recipe',)
     search_fields = ('user', 'recipe')
 
 
