@@ -3,14 +3,9 @@ from rest_framework import permissions
 
 class UserOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
-        rule_auth = request.user.is_authenticated
-        rule_kwargs = request.parser_context['kwargs'].get('id', None)
-
-        if not rule_auth and rule_kwargs is None:
-            return False
         return (
             request.method in permissions.SAFE_METHODS
-            or rule_auth
+            or request.user.is_authenticated
         )
 
     def has_object_permission(self, request, view, obj):

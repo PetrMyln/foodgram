@@ -14,6 +14,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework import viewsets
 from rest_framework.exceptions import ValidationError
 
+from api.paginators import Pagination
 from recipes.models import (
     Ingredient,
     Tag,
@@ -23,14 +24,13 @@ from recipes.models import (
     RecipesIngredient,
     ShortLink
 )
-from api.paginators import CustomPagination
+
 from api.serializers import (
     IngredientSerializer,
     TagSerializer,
     RecipesSerializer,
-    ShoppingSerializer,
-    FavoriteRecipeSerializer,
-    RecipesPostSerializer
+    RecipesPostSerializer, UsersSerializer, FavoriteShoppingSerializer,
+    ShoppingSerializer, FavoriteSerializer
 )
 
 from api.permissions import AuthorOrReadOnly
@@ -41,7 +41,7 @@ from api.serializers import SubscribeSerializer
 
 
 class UserViewSet(DjoserUserViewSet):
-    pagination_class = CustomPagination
+    pagination_class = Pagination
 
     def make_serializer(self, instance, data, partial=True):
         return self.get_serializer(
@@ -51,34 +51,24 @@ class UserViewSet(DjoserUserViewSet):
         )
 
     def check_before_update_delete(self, serializer):
-        serializer.is_valid(raise_exception=True)
+        serializer.is_valid(serializer)
         self.perform_update(serializer)
 
     @action(
         detail=False,
         methods=['put', 'delete'],
         url_path='me/avatar',
-        permission_classes=[AuthorOrModeratorOrReadOnly]
+        permission_classes=[AuthorOrModeratorOrReadOnly],
+        serializer_class=UsersSerializer
     )
     def avatar(self, request, *args, **kwargs):
         instance = self.request.user
+        serializer = self.make_serializer(instance, request.data)
         if request.method == 'PUT':
-            if not request.data:
-                raise ValidationError(
-                    {'avatar': ["Обязательное поле."]})
-            serializer = self.make_serializer(instance, request.data)
             self.check_before_update_delete(serializer)
             return Response({'avatar': serializer.data['avatar']})
         instance.avatar = ''
-        try:
-            serializer = self.make_serializer(instance, request.data)
-            self.check_before_update_delete(serializer)
-        except ValidationError as exc:
-            exc.detail.update({
-                'Ошибка': 'Пожалуйста, загрузите '
-                          'корректный файл изображения.'
-            })
-            raise exc
+        instance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
@@ -105,46 +95,33 @@ class UserViewSet(DjoserUserViewSet):
         serializer_class=SubscribeSerializer
     )
     def subscribe(self, request, id, **kwargs):
-        user = get_object_or_404(User, id=id)
         subscriber = request.user
-        if user == subscriber:
-            return Response(
-                {
-                    'Ошибка': 'Подписка и отписка на самого себя запрещена.'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if request.method == 'DELETE':
-            rule_is_sub_exists = Follow.objects.filter(
-                follower_id=request.user.pk, user_id=id)
-            if not rule_is_sub_exists.exists():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            rule_is_sub_exists.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        check_value_query_params = list(request.query_params.items())
-        if check_value_query_params:
-            query_params_value = list(request.query_params.items())[0]
-        else:
-            query_params_value = None
-        _, created = Follow.objects.get_or_create(
+        user = get_object_or_404(User, id=id)
+        subscription = Follow.objects.filter(
             follower=subscriber, user=user
         )
-        if created:
-            serializer = SubscribeSerializer(
-                User.objects.get(username=user),
-                context={
-                    'subscriber': subscriber.pk,
-                    'post': query_params_value
-                }
-            )
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-        return Response(
-            {'Ошибка': 'Выуже подписанны на этого пользователя.'},
-            status=status.HTTP_400_BAD_REQUEST
+        if request.method == 'DELETE':
+            if not subscription.exists():
+                return Response(
+                    {'Ошибка': 'Вы не подписаны на этого пользователя.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = SubscribeSerializer(
+            user,
+            data=request.data,
+            context={'request': request}
         )
+        serializer.is_valid(raise_exception=True)
+        if subscription.exists():
+            return Response(
+                {'Ошибка': 'Вы уже подписаны на этого пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        Follow.objects.create(follower=subscriber, user=user)
+        serializer = SubscribeSerializer(user, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class IngredientsView(viewsets.ReadOnlyModelViewSet):
@@ -172,7 +149,6 @@ class RecipesView(viewsets.ModelViewSet):
     permission_classes = [AuthorOrReadOnly]
     queryset = Recipes.objects.all()
     serializer_class = RecipesSerializer, RecipesPostSerializer
-    pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = RecipesFilter
     search_fields = ('tags', 'ingredients')
@@ -181,22 +157,6 @@ class RecipesView(viewsets.ModelViewSet):
         if self.request.method in ('POST', 'PATCH'):
             return RecipesPostSerializer
         return RecipesSerializer
-
-    def create(self, request, *args, **kwargs):
-        # Для ревьювера.
-        # уже передаю автора в сериализатор двумя строчками ниже
-        # у меня в сериализаторе RecipesPostSerializer
-        # author = UsersSerializer(default=serializers.CurrentUserDefault())
-        # может тогда вообще не передавать ?
-        #  и оставить вот так serializer.save()
-        #  если опять у меня ошибка, направте поточнее. спасибо
-        serializer = self.get_serializer(
-            data=request.data,
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save(author=self.request.user)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(
         detail=True,
@@ -229,24 +189,19 @@ class RecipesView(viewsets.ModelViewSet):
 
     def shop_and_favorite(self, request, pk, model, serializer, item):
         user = get_object_or_404(User, id=self.request.user.pk)
-        recipe = get_object_or_404(
-            Recipes,
-            id=request.parser_context['kwargs']['pk']
-        )
+        recipe = get_object_or_404(Recipes, id=pk)
         if request.method == 'DELETE':
             rule_to_delete = model.objects.filter(
                 user=request.user.pk, recipe=pk
             )
-            if not rule_to_delete.exists():
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            rule_to_delete.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            if rule_to_delete.delete()[0]:
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         obj, created = model.objects.get_or_create(
             recipe=recipe,
             user=user,
             name=recipe.name,
-            image=recipe.image,
-            cooking_time=recipe.cooking_time
         )
         if created:
             serializer = serializer(obj)
@@ -258,6 +213,8 @@ class RecipesView(viewsets.ModelViewSet):
             {'Ошибка': f'Рецепт уже добавле в {item}.'},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
 
     @action(
         detail=True,
@@ -285,7 +242,7 @@ class RecipesView(viewsets.ModelViewSet):
             request,
             pk,
             FavoriteRecipe,
-            FavoriteRecipeSerializer,
+            FavoriteSerializer,
             'избранное'
         )
 

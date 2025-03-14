@@ -8,7 +8,7 @@ from foodgram_backend.constant import (
     LENGTH_SHOW_NAME,
     LENGTH_TEXT,
     LENGTH_USERNAME,
-    PATH_TO_AVATAR,
+    PATH_TO_AVATAR, LENGTH_VALUE,
 )
 
 
@@ -42,6 +42,17 @@ class User(AbstractUser):
         null=True,
         default=''
     )
+    first_name = models.CharField(
+        max_length=LENGTH_VALUE,
+        verbose_name='Имя',
+        help_text='Имя'
+    )
+    last_name = models.CharField(
+        max_length=LENGTH_VALUE,
+        verbose_name='Фамилия',
+        help_text='Фамилия'
+    )
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 

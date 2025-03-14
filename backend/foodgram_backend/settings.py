@@ -12,11 +12,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
-#DEBAG = True
-
-DEBUG = os.getenv('FOR_DEBAG') == 'False'
-
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', "localhost").split(',')
+DEBAG = True
+# DEBUG = os.getenv('FOR_DEBAG') == 'False'
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+#ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
 # Application definition
 
@@ -77,14 +76,12 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
-
-DATfABASES = {
+DATdABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 DATABASES = {
     'default': {
@@ -144,8 +141,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,
+    'DEFAULT_PAGINATION_CLASS': 'api.paginators.Pagination',
+    'PAGE_SIZE': 6,
 }
 
 PASSWORD_HASHERS = [
