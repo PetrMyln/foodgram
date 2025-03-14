@@ -82,3 +82,24 @@ docker-compose exec "Название контейнера" python manage.py col
     API: http://localhost:8000/api/
 
 ```
+
+#  ПЕРЕД ПОСЛЕДНЕЙ ПРАВКОЙ УДАЛЮ и заменю супераюзера
+
+```
+
+в 6 рецепте https://food-gramtryam.zapto.org/recipes/6
+описание .env
+
+НА сайте предварительно 10 юзеров, 60 рецептов
+
+
+добавить все ингредиенты и теги используйте для прохождения всех postman запросов
+python manage.py adding
+
+добавить тестовых юзеров, рецепты, теги
+python manage.py addiddqd
+
+для админки
+login 1@1.ru 
+password - 1
+```
