@@ -76,14 +76,9 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
-DATgABASES = {
+
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_DB', 'django'),
@@ -133,6 +128,7 @@ STATIC_URL = '/static_backend/'
 STATIC_ROOT = BASE_DIR / 'collected_static'
 
 AUTH_USER_MODEL = "users.User"
+
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
