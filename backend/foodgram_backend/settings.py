@@ -12,8 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 SECRET_KEY = os.getenv('SECRET', 'default_secret_key')
 
-
-DEBUG = os.getenv('FOR_DEBAG') == 'False'
+DEBdUG = os.getenv('FOR_DEBAG') == 'False'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
@@ -74,9 +73,6 @@ WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-
-
 
 DATABASES = {
     'default': {

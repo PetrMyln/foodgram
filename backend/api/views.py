@@ -56,6 +56,19 @@ class UserViewSet(DjoserUserViewSet):
 
     @action(
         detail=False,
+        url_path='me',
+        permission_classes=[AuthorOrModeratorOrReadOnly],
+        serializer_class=UsersSerializer
+    )
+    def me(self, request, *args, **kwargs):
+        instance = request.user
+        if not instance.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
         methods=['put', 'delete'],
         url_path='me/avatar',
         permission_classes=[AuthorOrModeratorOrReadOnly],
