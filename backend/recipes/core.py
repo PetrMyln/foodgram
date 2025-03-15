@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
-from foodgram_backend.constant import LENGTH_DISCRIPTION, PATH_TO_IMAGES
+from foodgram_backend.constant import LENGTH_DISCRIPTION
 
 User = get_user_model()
 

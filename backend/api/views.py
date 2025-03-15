@@ -12,9 +12,17 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework import viewsets
-from rest_framework.exceptions import ValidationError
 
-from api.paginators import Pagination
+from api.paginators import Pagination, LimitRecipesPagination
+from api.serializers import (
+    IngredientSerializer,
+    TagSerializer,
+    RecipesSerializer,
+    RecipesPostSerializer,
+    UsersSerializer,
+    ShoppingSerializer,
+    FavoriteSerializer
+)
 from recipes.models import (
     Ingredient,
     Tag,
@@ -23,14 +31,6 @@ from recipes.models import (
     FavoriteRecipe,
     RecipesIngredient,
     ShortLink
-)
-
-from api.serializers import (
-    IngredientSerializer,
-    TagSerializer,
-    RecipesSerializer,
-    RecipesPostSerializer, UsersSerializer, FavoriteShoppingSerializer,
-    ShoppingSerializer, FavoriteSerializer
 )
 
 from api.permissions import AuthorOrReadOnly
@@ -78,6 +78,8 @@ class UserViewSet(DjoserUserViewSet):
         serializer_class=SubscribeSerializer
     )
     def subscriptions(self, request, *args, **kwargs):
+        if 'recipes_limit' in request.query_params:
+            self.pagination_class = LimitRecipesPagination
         queryset = User.objects.filter(
             following__follower_id=self.request.user.pk)
         page = self.paginate_queryset(queryset)
@@ -95,6 +97,7 @@ class UserViewSet(DjoserUserViewSet):
         serializer_class=SubscribeSerializer
     )
     def subscribe(self, request, id, **kwargs):
+
         subscriber = request.user
         user = get_object_or_404(User, id=id)
         subscription = Follow.objects.filter(
@@ -121,6 +124,11 @@ class UserViewSet(DjoserUserViewSet):
             )
         Follow.objects.create(follower=subscriber, user=user)
         serializer = SubscribeSerializer(user, context={'request': request})
+        if 'recipes_limit' in request.query_params:
+            recipe_limit = int(self.request.query_params['recipes_limit'])
+            respons_data = dict(serializer.data)
+            respons_data['recipes'] = respons_data['recipes'][:recipe_limit]
+            return Response(respons_data, status=status.HTTP_201_CREATED)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -213,8 +221,6 @@ class RecipesView(viewsets.ModelViewSet):
             {'Ошибка': f'Рецепт уже добавле в {item}.'},
             status=status.HTTP_400_BAD_REQUEST
         )
-
-
 
     @action(
         detail=True,

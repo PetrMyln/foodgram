@@ -1,14 +1,12 @@
 import base64
-from collections import Counter
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.files.base import ContentFile
 from django.contrib.auth.hashers import make_password
 from djoser.serializers import UserSerializer as DjoserUserSerializer
 from rest_framework import serializers
 
-from foodgram_backend.constant import LENGTH_TEXT, LENGTH_USERNAME
 from users.models import User, Follow
 from recipes.models import (
     Ingredient,
@@ -56,8 +54,8 @@ class UsersSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         user = obj.pk
         rule = (
-                self.context.get('subscriber') is None
-                and self.context.get('request') is None
+            self.context.get('subscriber') is None
+            and self.context.get('request') is None
         )
         if rule:
             return False
@@ -77,9 +75,6 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
-
-
-from django.conf import settings
 
 
 class FavoriteShoppingSerializer(serializers.ModelSerializer):
@@ -227,7 +222,8 @@ class RecipesPostSerializer(serializers.ModelSerializer):
             missing_fields = set(self.Meta.fields) - set(attrs.keys())
             if missing_fields:
                 raise ValidationError(
-                    f'Отсутствуют обязательные поля: {", ".join(missing_fields)}',
+                    f'Отсутствуют обязательные поля: '
+                    f'{", ".join(missing_fields)}',
                     code=400
                 )
         for field in required_fields:
@@ -292,10 +288,7 @@ class RecipesPostSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
-
-
 class AuthSerializer(DjoserUserSerializer):
-
     first_name = serializers.CharField(required=True, max_length=150)
     last_name = serializers.CharField(required=True, max_length=150)
     password = serializers.CharField(write_only=True)
@@ -356,7 +349,6 @@ class SubscribeSerializer(UsersSerializer):
         read_only_fields = ('email', 'username',)
 
     def validate(self, data):
-
         user = self.context['request'].user
         subscriber = self.instance
         if user == subscriber:
@@ -367,22 +359,3 @@ class SubscribeSerializer(UsersSerializer):
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        rule = 'post' in self.context.keys()
-        if rule:
-            if self.context['post'] is None:
-                return representation
-            cnt_recipes = int(self.context['post'][1])
-            representation['recipes'] = representation['recipes'][:cnt_recipes]
-            return representation
-        recipe_limit = list(self.context.get('request').query_params.items())
-        if recipe_limit and recipe_limit[0][0] == 'recipes_limit':
-            cnt_recipes = int(recipe_limit[0][1])
-            representation['recipes'] = representation['recipes'][:cnt_recipes]
-            return representation
-        return representation
-
-
-
