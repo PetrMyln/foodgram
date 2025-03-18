@@ -33,18 +33,3 @@ class Command(BaseCommand):
                     print(f'{tag} tags ready')
                 except Exception:
                     pass
-
-            try:
-                _, _ = User.objects.get_or_create(
-                    username='petr',
-                    email='1@1.ru',
-                    password=make_password('1'),
-                    is_staff=True,
-                    is_superuser=True
-                )
-                print('superuser ready')
-            except Exception:
-                pass
-
-            else:
-                print('100% load')

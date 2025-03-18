@@ -47,20 +47,6 @@ class Command(BaseCommand):
                 except Exception:
                     pass
 
-            try:
-                _, _ = User.objects.get_or_create(
-                    username='petr',
-                    email='1@1.ru',
-                    password=make_password('1'),
-                    is_staff=True,
-                    is_superuser=True
-                )
-                print('superuser ready')
-            except Exception:
-                pass
-
-            else:
-                print('100% load')
         try:
             value = 1
             value_rec = 1
@@ -94,7 +80,5 @@ class Command(BaseCommand):
                         recipeingredients_data)
                     obj.tags.set(tgs_cnt)
                     value_rec += 1
-            else:
-                print('FINI users, rec')
         except Exception as e:
             print(e)

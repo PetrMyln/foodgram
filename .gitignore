@@ -146,3 +146,4 @@ media/
 /backend/redoc/
 /backend/static_backend/
 
+/backend/sent_emails/
